@@ -27,7 +27,6 @@ end
 
 function _update(dt)
   if input.pressed(input.LEFT) or input.held(input.LEFT) then
-    print("registered")
     shapes[1].tingX -= speed
   end
 end
@@ -37,10 +36,8 @@ function _draw(dt)
   gfx.text("Hello, Usagi!", 10, 10, gfx.COLOR_WHITE)
   local shpLng = #shapes
   for i=1, shpLng do
-    print("screaming")
-    print(shapes[i].tingX)
     -- I know I can make this work
     --gfx.shapes[1].type(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
-    gfx.circ(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
+    gfx.circ(shapes[i].tingX, shapes[i].tingY, radius, gfx.COLOR_GREEN)
   end
 end
