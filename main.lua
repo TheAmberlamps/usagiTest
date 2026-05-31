@@ -3,7 +3,7 @@ function _config()
 end
 
 local radius = 35
-local accel = 1
+local accel = 0.5
 local centW = usagi.GAME_W / 2
 local centH = usagi.GAME_H / 2
 local shapes = {}
@@ -27,7 +27,7 @@ function DrawingTing(typeInput)
   table.insert(shapes, newTing)
 end
 
-function _update(dt)
+function LeftRight(dt)
   if input.pressed(input.LEFT) or input.held(input.LEFT) then
     shapes[1].mov = true
     shapes[1].speed -= accel - dt
@@ -65,6 +65,10 @@ function _update(dt)
     end
     shapes[1].tingX += shapes[1].speed
   end
+end
+
+function _update(dt)
+  LeftRight(dt)
 end
 
 function _draw(dt)
