@@ -3,7 +3,7 @@ function _config()
 end
 
 local radius = 35
-local speed = 1
+local accel = 1
 local centW = usagi.GAME_W / 2
 local centH = usagi.GAME_H / 2
 local shapes = {}
@@ -21,13 +21,49 @@ function DrawingTing(typeInput)
     type = typeInput,
     tingX = centW,
     tingY = centH,
+    speed = 0,
+    mov = false
   }
   table.insert(shapes, newTing)
 end
 
 function _update(dt)
   if input.pressed(input.LEFT) or input.held(input.LEFT) then
-    shapes[1].tingX -= speed
+    shapes[1].mov = true
+    shapes[1].speed -= accel - dt
+    if shapes[1].speed < -10 then
+      shapes[1].speed = -10
+    end
+    shapes[1].tingX += shapes[1].speed
+  end
+  if input.released(input.LEFT) then
+    shapes[1].mov = false
+  end
+  if input.pressed(input.RIGHT) or input.held(input.RIGHT) then
+    shapes[1].mov = true
+    shapes[1].speed += accel + dt
+    if shapes[1].speed > 10 then
+      shapes[1].speed = 10
+    end
+    shapes[1].tingX += shapes[1].speed
+  end
+  if input.released(input.RIGHT) then
+    shapes[1].mov = false
+  end
+  if shapes[1].mov == false then 
+    if shapes[1].speed > 0 then
+      shapes[1].speed -= accel
+      if shapes[1].speed < 0 then
+        shapes[1].speed = 0
+      end
+    else if shapes[1].speed < 0 then
+      shapes[1].speed += accel
+      if shapes[1].speed > 0 then
+        shapes[1].speed = 0
+      end
+    end
+    end
+    shapes[1].tingX += shapes[1].speed
   end
 end
 
