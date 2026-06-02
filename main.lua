@@ -7,18 +7,31 @@ local accel = 0.5
 local centW = usagi.GAME_W / 2
 local centH = usagi.GAME_H / 2
 local starNum = 50
+local ellRot = 0
 local shapes = {}
 local stars = {}
+
+print(usagi.SPRITE_SIZE)
 
 function _init()
   -- Live reload preserves globals across saved edits but resets locals.
   -- Stash mutable game state in a capitalized global like `State` so it
   -- survives reloads; F5 calls _init again to reset.
-  State = {}
+  State = {
+    timer = 0
+  }
     while  #stars < starNum do
       MakeStars(1)
     end
   DrawingTing('circ')
+end
+
+function RotVal(dt)
+  ellRot += dt
+  if ellRot >= 360 then
+    ellRot = 0
+  end
+  return ellRot
 end
 
 function DrawingTing(typeInput)
@@ -27,7 +40,8 @@ function DrawingTing(typeInput)
     tingX = centW,
     tingY = centH,
     speed = 0,
-    mov = false
+    mov = false,
+    rotVal = 0
   }
   table.insert(shapes, newTing)
 end
@@ -96,6 +110,9 @@ function _update(dt)
       stars[i].tingX -= stars[i].speed
     end
   end
+  --State.timer += dt
+  shapes[1].rotVal = RotVal(dt)
+  --print(State.timer)
 end
 
 function _draw(dt)
@@ -104,7 +121,10 @@ function _draw(dt)
   for i=1, #shapes do
     -- I know I can make this work
     --gfx.shapes[1].type(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
-    gfx.circ(shapes[i].tingX, shapes[i].tingY, radius, gfx.COLOR_GREEN)
+    
+    --gfx.sspr_ex(sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y, rotation, tint, alpha)
+    local radNum = shapes[1].rotVal
+    gfx.sspr_ex(0, 16, 16, 16, shapes[1].tingX, shapes[1].tingY, 16, 16, false, false, math.rad(radNum), gfx.COLOR_WHITE, 1.0)
   end
   for i=1, #stars do
     gfx.px(stars[i].tingX, stars[i].tingY, gfx.COLOR_WHITE)
