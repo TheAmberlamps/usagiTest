@@ -3,15 +3,16 @@ function _config()
 end
 
 local radius = 35
-local accel = 0.5
+local timeInt = 1
+local sprWid = 16
+local subVal = true
+local accel = 0.25
 local centW = usagi.GAME_W / 2
 local centH = usagi.GAME_H / 2
 local starNum = 50
 local ellRot = 0
 local shapes = {}
 local stars = {}
-
-print(usagi.SPRITE_SIZE)
 
 function _init()
   -- Live reload preserves globals across saved edits but resets locals.
@@ -26,21 +27,38 @@ function _init()
   DrawingTing('circ')
 end
 
-function RotVal(dt)
-  ellRot += dt
+function RotVal(dt, interval)
+  ellRot += dt + interval
   if ellRot >= 360 then
-    ellRot = 0
+    ellRot = ellRot - 360
   end
-  return ellRot
+  return math.rad(ellRot)
+end
+
+function FlipNum(interval)
+  if subVal then
+    sprWid -= interval
+  else
+    sprWid += interval
+  end
+  if sprWid >= 16 then
+    subVal = true
+  end
+  if sprWid <= 1 then
+    subVal = false
+  end
+  return sprWid
 end
 
 function DrawingTing(typeInput)
   local newTing = {
     type = typeInput,
+    centSize = 5,
     tingX = centW,
     tingY = centH,
     speed = 0,
     mov = false,
+    flipVal = sprWid,
     rotVal = 0
   }
   table.insert(shapes, newTing)
@@ -110,9 +128,8 @@ function _update(dt)
       stars[i].tingX -= stars[i].speed
     end
   end
-  --State.timer += dt
-  shapes[1].rotVal = RotVal(dt)
-  --print(State.timer)
+  shapes[1].rotVal = RotVal(dt, timeInt)
+  shapes[1].flipVal = FlipNum(0.5)
 end
 
 function _draw(dt)
@@ -121,10 +138,9 @@ function _draw(dt)
   for i=1, #shapes do
     -- I know I can make this work
     --gfx.shapes[1].type(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
-    
-    --gfx.sspr_ex(sx, sy, sw, sh, dx, dy, dw, dh, flip_x, flip_y, rotation, tint, alpha)
-    local radNum = shapes[1].rotVal
-    gfx.sspr_ex(0, 16, 16, 16, shapes[1].tingX, shapes[1].tingY, 16, 16, false, false, math.rad(radNum), gfx.COLOR_WHITE, 1.0)
+    gfx.sspr_ex(0, 0, 16, 16, shapes[1].tingX - shapes[1].flipVal, shapes[1].tingY - 16, shapes[1].flipVal * 2, 16 * 2 , false, false, shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
+    gfx.sspr_ex(0, 0, 16, 16, shapes[1].tingX - shapes[1].flipVal, shapes[1].tingY - 16, shapes[1].flipVal * 2, 16 * 2 , false, false, shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
+    gfx.circ_fill(shapes[1].tingX, shapes[1].tingY, shapes[1].centSize, gfx.COLOR_WHITE)
   end
   for i=1, #stars do
     gfx.px(stars[i].tingX, stars[i].tingY, gfx.COLOR_WHITE)
