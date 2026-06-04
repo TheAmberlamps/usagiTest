@@ -116,9 +116,12 @@ function LeftRight(dt)
   end
   if shapes[1].tingX - shapes[1].centSize <= 0 then
     shapes[1].tingX = 0 + shapes[1].centSize
+    shapes[1].speed = -shapes[1].speed
+
   end
   if shapes[1].tingX + shapes[1].centSize >= usagi.GAME_W then
     shapes[1].tingX = usagi.GAME_W - shapes[1].centSize
+    shapes[1].speed = -shapes[1].speed
   end
 end
 
@@ -136,7 +139,7 @@ function _update(dt)
   end
   shapes[1].rotVal = RotVal(dt, timeInt)
   shapes[1].flipVal = FlipNum(0.5)
-end
+end 
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
@@ -144,7 +147,6 @@ function _draw(dt)
   for i=1, #shapes do
     -- I know I can make this work
     --gfx.shapes[1].type(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
-    gfx.sspr_ex(0, 0, 16, 16, shapes[1].tingX - shapes[1].flipVal, shapes[1].tingY - 16, shapes[1].flipVal * 2, 16 * 2 , false, false, shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
     gfx.sspr_ex(0, 0, 16, 16, shapes[1].tingX - shapes[1].flipVal, shapes[1].tingY - 16, shapes[1].flipVal * 2, 16 * 2 , false, false, shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
     gfx.circ_fill(shapes[1].tingX, shapes[1].tingY, shapes[1].centSize, gfx.COLOR_WHITE)
   end
