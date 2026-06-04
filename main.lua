@@ -56,8 +56,10 @@ function DrawingTing(typeInput)
     centSize = 5,
     tingX = centW,
     tingY = centH,
-    speed = 0,
-    mov = false,
+    speedX = 0,
+    speedY = 0,
+    movX = false,
+    movY = false,
     flipVal = sprWid,
     rotVal = 0
   }
@@ -78,55 +80,105 @@ end
 
 function LeftRight(dt)
   if input.pressed(input.LEFT) or input.held(input.LEFT) then
-    shapes[1].mov = true
-    shapes[1].speed -= accel - dt
-    if shapes[1].speed < -10 then
-      shapes[1].speed = -10
+    shapes[1].movX = true
+    shapes[1].speedX -= accel - dt
+    if shapes[1].speedX < -10 then
+      shapes[1].speedX = -10
     end
-    shapes[1].tingX += shapes[1].speed
+    shapes[1].tingX += shapes[1].speedX
   end
   if input.released(input.LEFT) then
-    shapes[1].mov = false
+    shapes[1].movX = false
   end
   if input.pressed(input.RIGHT) or input.held(input.RIGHT) then
-    shapes[1].mov = true
-    shapes[1].speed += accel + dt
-    if shapes[1].speed > 10 then
-      shapes[1].speed = 10
+    shapes[1].movX = true
+    shapes[1].speedX += accel + dt
+    if shapes[1].speedX > 10 then
+      shapes[1].speedX = 10
     end
-    shapes[1].tingX += shapes[1].speed
+    shapes[1].tingX += shapes[1].speedX
   end
   if input.released(input.RIGHT) then
-    shapes[1].mov = false
+    shapes[1].movX = false
   end
-  if shapes[1].mov == false then 
-    if shapes[1].speed > 0 then
-      shapes[1].speed -= accel
-      if shapes[1].speed < 0 then
-        shapes[1].speed = 0
+  if shapes[1].movX == false then 
+    if shapes[1].speedX > 0 then
+      shapes[1].speedX -= accel
+      if shapes[1].speedX < 0 then
+        shapes[1].speedX = 0
       end
-    else if shapes[1].speed < 0 then
-      shapes[1].speed += accel
-      if shapes[1].speed > 0 then
-        shapes[1].speed = 0
+    else if shapes[1].speedX < 0 then
+      shapes[1].speedX += accel
+      if shapes[1].speedX > 0 then
+        shapes[1].speedX = 0
       end
     end
     end
-    shapes[1].tingX += shapes[1].speed
+    shapes[1].tingX += shapes[1].speedX
   end
   if shapes[1].tingX - shapes[1].centSize <= 0 then
     shapes[1].tingX = 0 + shapes[1].centSize
-    shapes[1].speed = -shapes[1].speed
+    shapes[1].speedX = -shapes[1].speedX
 
   end
   if shapes[1].tingX + shapes[1].centSize >= usagi.GAME_W then
     shapes[1].tingX = usagi.GAME_W - shapes[1].centSize
-    shapes[1].speed = -shapes[1].speed
+    shapes[1].speedX = -shapes[1].speedX
+  end
+end
+
+function UpDown(dt)
+  if input.pressed(input.UP) or input.held(input.UP) then
+    shapes[1].movY = true
+    shapes[1].speedY -= accel - dt
+    if shapes[1].speedY < -10 then
+      shapes[1].speedY = -10
+    end
+    shapes[1].tingY += shapes[1].speedY
+  end
+  if input.released(input.UP) then
+    shapes[1].movY = false
+  end
+  if input.pressed(input.DOWN) or input.held(input.DOWN) then
+    shapes[1].movY = true
+    shapes[1].speedY += accel + dt
+    if shapes[1].speedY > 10 then
+      shapes[1].speedY = 10
+    end
+    shapes[1].tingY += shapes[1].speedY
+  end
+  if input.released(input.DOWN) then
+    shapes[1].movY = false
+  end
+  if shapes[1].movY == false then 
+    if shapes[1].speedY > 0 then
+      shapes[1].speedY -= accel
+      if shapes[1].speedY < 0 then
+        shapes[1].speedY = 0
+      end
+    else if shapes[1].speedY < 0 then
+      shapes[1].speedY += accel
+      if shapes[1].speedY > 0 then
+        shapes[1].speedY = 0
+      end
+    end
+    end
+    shapes[1].tingY += shapes[1].speedY
+  end
+  if shapes[1].tingY - shapes[1].centSize <= 0 then
+    shapes[1].tingY = 0 + shapes[1].centSize
+    shapes[1].speedY = -shapes[1].speedY
+
+  end
+  if shapes[1].tingY + shapes[1].centSize >= usagi.GAME_H then
+    shapes[1].tingY = usagi.GAME_H - shapes[1].centSize
+    shapes[1].speedY = -shapes[1].speedY
   end
 end
 
 function _update(dt)
   LeftRight(dt)
+  UpDown(dt)
   while #stars < starNum do
     MakeStars()
   end
