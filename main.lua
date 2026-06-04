@@ -114,6 +114,12 @@ function LeftRight(dt)
     end
     shapes[1].tingX += shapes[1].speed
   end
+  if shapes[1].tingX - shapes[1].centSize <= 0 then
+    shapes[1].tingX = 0 + shapes[1].centSize
+  end
+  if shapes[1].tingX + shapes[1].centSize >= usagi.GAME_W then
+    shapes[1].tingX = usagi.GAME_W - shapes[1].centSize
+  end
 end
 
 function _update(dt)
@@ -145,4 +151,5 @@ function _draw(dt)
   for i=1, #stars do
     gfx.px(stars[i].tingX, stars[i].tingY, gfx.COLOR_WHITE)
   end
+  print(shapes[1].tingX)
 end
