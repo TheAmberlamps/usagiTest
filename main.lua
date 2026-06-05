@@ -12,6 +12,7 @@ local centH = usagi.GAME_H / 2
 local starNum = 50
 local ellRot = 0
 local shapes = {}
+local weapon = {}
 local stars = {}
 
 function _init()
@@ -25,6 +26,7 @@ function _init()
       MakeStars(1)
     end
   DrawingTing('circ')
+  AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
 end
 
 function RotVal(dt, interval)
@@ -50,10 +52,19 @@ function FlipNum(interval)
   return sprWid
 end
 
+function GravEf(sub, obj)
+  local subject = sub
+  local object = obj
+  if subject.tingX > object.tingX then
+    subject.tingX -= object.mass
+  end
+end
+
 function DrawingTing(typeInput)
   local newTing = {
     type = typeInput,
     centSize = 5,
+    mass = 1,
     tingX = centW,
     tingY = centH,
     speedX = 0,
@@ -64,6 +75,17 @@ function DrawingTing(typeInput)
     rotVal = 0
   }
   table.insert(shapes, newTing)
+end
+
+function AntiMatter(x, y)
+  local AMSprite = {
+    radius = 2.5,
+    tingX = x,
+    tingY = y,
+    speed = 0,
+    color = gfx.COLOR_RED
+  }
+  table.insert(weapon, AMSprite)
 end
 
 function MakeStars(num)
@@ -179,8 +201,12 @@ end
 function _update(dt)
   LeftRight(dt)
   UpDown(dt)
+  GravEf(weapon[1], shapes[1])
   while #stars < starNum do
     MakeStars()
+  end
+  for i=1, #weapon do
+    weapon[1].speed += shapes[1].mass
   end
   for i=#stars, 1, -1 do
     if stars[i].tingX <= 0 then
@@ -202,8 +228,10 @@ function _draw(dt)
     gfx.sspr_ex(0, 0, 16, 16, shapes[1].tingX - shapes[1].flipVal, shapes[1].tingY - 16, shapes[1].flipVal * 2, 16 * 2 , false, false, shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
     gfx.circ_fill(shapes[1].tingX, shapes[1].tingY, shapes[1].centSize, gfx.COLOR_WHITE)
   end
+  for i=1, #weapon do
+    gfx.circ_fill(weapon[i].tingX, weapon[i].tingY, weapon[i].radius, weapon[i].color)
+  end
   for i=1, #stars do
     gfx.px(stars[i].tingX, stars[i].tingY, gfx.COLOR_WHITE)
   end
-  print(shapes[1].tingX)
 end
