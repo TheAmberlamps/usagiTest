@@ -4,6 +4,7 @@ end
 
 local radius = 35
 local timeInt = 1
+local colVal = 1
 local sprWid = 16
 local subVal = true
 local accel = 0.25
@@ -60,6 +61,17 @@ function GravEf(sub, obj)
   end
 end
 
+function ColourShift(col)
+  local colNum = col
+  if colNum > 16 then
+    colNum = 1
+  else
+    colNum += 1
+  end
+  colVal = colNum
+  return colNum
+end
+
 function DrawingTing(typeInput)
   local newTing = {
     type = typeInput,
@@ -83,7 +95,7 @@ function AntiMatter(x, y)
     tingX = x,
     tingY = y,
     speed = 0,
-    color = gfx.COLOR_RED
+    color = ColourShift(0)
   }
   table.insert(weapon, AMSprite)
 end
@@ -217,6 +229,7 @@ function _update(dt)
   end
   shapes[1].rotVal = RotVal(dt, timeInt)
   shapes[1].flipVal = FlipNum(0.5)
+  weapon[1].color = ColourShift(colVal)
 end 
 
 function _draw(dt)
@@ -229,7 +242,7 @@ function _draw(dt)
     gfx.circ_fill(shapes[1].tingX, shapes[1].tingY, shapes[1].centSize, gfx.COLOR_WHITE)
   end
   for i=1, #weapon do
-    gfx.circ_fill(weapon[i].tingX, weapon[i].tingY, weapon[i].radius, weapon[i].color)
+    gfx.circ_fill(weapon[i].tingX, weapon[i].tingY, weapon[i].radius, weapon[1].color)
   end
   for i=1, #stars do
     gfx.px(stars[i].tingX, stars[i].tingY, gfx.COLOR_WHITE)
