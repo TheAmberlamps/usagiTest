@@ -13,6 +13,7 @@ local centH = usagi.GAME_H / 2
 local starNum = 50
 local ellRot = 0
 local shapes = {}
+local arrow = {}
 local weapon = {}
 local stars = {}
 
@@ -54,10 +55,44 @@ function FlipNum(interval)
 end
 
 function GravEf(sub, obj)
-  local subject = sub
-  local object = obj
-  if subject.tingX > object.tingX then
-    subject.tingX -= object.mass
+  local wep = sub
+  local player = obj
+  if wep.tingX > player.tingX then
+    wep.speedX -= player.mass
+    wep.tingX += wep.speedX
+  end
+  if wep.tingX < player.tingX then
+    wep.speedX += player.mass
+    wep.tingX += wep.speedX
+  end
+  print(wep.speedX)
+  if wep.tingY > player.tingY then
+    wep.speedY -= player.mass
+    wep.tingY += wep.speedY
+  end
+  if wep.tingY < player.tingY then
+    wep.speedY += player.mass
+    wep.tingY += wep.speedY
+  end
+end
+
+function ArrowMaker(ting)
+  local data = ting
+  local newArrow = {
+    x1 = 0,
+    y1 = data.tingY,
+    x2 = 10,
+    y2 = data.tingY + 10,
+    x3 = 10,
+    y3 = data.tingY - 10
+  }
+  table.insert(arrow, newArrow)
+end
+
+function WeaponTracker(ting)
+  local wep = ting
+  if wep.tingX < 0 and #arrow == 0 then
+    ArrowMaker(wep)
   end
 end
 
@@ -76,7 +111,7 @@ function DrawingTing(typeInput)
   local newTing = {
     type = typeInput,
     centSize = 5,
-    mass = 1,
+    mass = 0.1,
     tingX = centW,
     tingY = centH,
     speedX = 0,
@@ -94,7 +129,8 @@ function AntiMatter(x, y)
     radius = 2.5,
     tingX = x,
     tingY = y,
-    speed = 0,
+    speedX = 0,
+    speedY = 0,
     color = ColourShift(0)
   }
   table.insert(weapon, AMSprite)
@@ -214,11 +250,9 @@ function _update(dt)
   LeftRight(dt)
   UpDown(dt)
   GravEf(weapon[1], shapes[1])
+  WeaponTracker(weapon[1])
   while #stars < starNum do
     MakeStars()
-  end
-  for i=1, #weapon do
-    weapon[1].speed += shapes[1].mass
   end
   for i=#stars, 1, -1 do
     if stars[i].tingX <= 0 then
@@ -243,6 +277,9 @@ function _draw(dt)
   end
   for i=1, #weapon do
     gfx.circ_fill(weapon[i].tingX, weapon[i].tingY, weapon[i].radius, weapon[1].color)
+  end
+  for i=1, #arrow do
+    gfx.tri_fill(arrow[1].x1, arrow[1].y1, arrow[1].x2, arrow[1].y2, arrow[1].x3, arrow[1].y3, gfx.COLOR_WHITE)
   end
   for i=1, #stars do
     gfx.px(stars[i].tingX, stars[i].tingY, gfx.COLOR_WHITE)
