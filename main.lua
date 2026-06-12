@@ -8,6 +8,8 @@ local colVal = 1
 local sprWid = 16
 local subVal = true
 local accel = 0.25
+local gameW = usagi.GAME_W
+local gameH = usagi.GAME_H
 local centW = usagi.GAME_W / 2
 local centH = usagi.GAME_H / 2
 local starNum = 50
@@ -65,7 +67,7 @@ function GravEf(sub, obj)
     wep.speedX += player.mass
     wep.tingX += wep.speedX
   end
-  print(wep.speedX)
+  --print(wep.speedX)
   if wep.tingY > player.tingY then
     wep.speedY -= player.mass
     wep.tingY += wep.speedY
@@ -78,6 +80,7 @@ end
 
 function ArrowMaker(ting)
   local data = ting
+  print("arrow is being created")
   local newArrow = {
     x1 = 0,
     y1 = data.tingY,
@@ -91,8 +94,33 @@ end
 
 function WeaponTracker(ting)
   local wep = ting
-  if wep.tingX < 0 and #arrow == 0 then
-    ArrowMaker(wep)
+  if wep.tingX < 0 and wep.tingY < 0 then
+    return "tL"
+  end
+  if wep.tingX < 0 and wep.tingY > gameH then
+    return "bL"
+  end
+  if wep.tingX > gameW and wep.tingY < 0 then
+    return "tR"
+  end
+  if wep.tingX > gameW and wep.tingY > gameH then
+    return "bR"
+  end
+  if wep.tingX > 0 and wep.tingX < gameW then
+    if wep.tingY < 0 then
+      return "u"
+    end
+    if wep.tingY > gameH then
+      return "d"
+    end
+  end
+  if wep.tingY > 0 and wep.tingY < gameH then
+    if wep.tingX < 0 then
+      return "l"
+    end
+    if wep.tingX > gameW then
+      return "r"
+    end
   end
 end
 
@@ -250,7 +278,7 @@ function _update(dt)
   LeftRight(dt)
   UpDown(dt)
   GravEf(weapon[1], shapes[1])
-  WeaponTracker(weapon[1])
+  print(WeaponTracker(weapon[1]))
   while #stars < starNum do
     MakeStars()
   end
