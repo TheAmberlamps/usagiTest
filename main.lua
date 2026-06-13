@@ -78,22 +78,44 @@ function GravEf(sub, obj)
   end
 end
 
-function ArrowMaker(ting)
+function ArrowMaker(ting, w)
   local data = ting
-  print("arrow is being created")
-  local newArrow = {
+  local len = 10
+  arrow = {}
+  if data == "IN" then
+    return
+  end
+  local wep = w
+  local nA = {
     x1 = 0,
-    y1 = data.tingY,
-    x2 = 10,
-    y2 = data.tingY + 10,
-    x3 = 10,
-    y3 = data.tingY - 10
+    y1 = 0,
+    x2 = 0,
+    y2 = 0,
+    x3 = 0,
+    y3 = 0
   }
-  table.insert(arrow, newArrow)
+  if data == "tL" or data == "l" or data == "bL" then
+    if data == "tL" then
+      nA.x2 = len
+      nA.y3 = len
+    elseif data == "bL" then
+      nA.x3 = 10
+      nA.y1 = gameH
+      nA.y2 = gameH - len
+      nA.y3 = gameH
+    end
+  end
+  --if data == "tR" or data == "r" or  data == "bR" then
+    --nA.x1 = gameW
+  --end
+  table.insert(arrow, nA)
 end
 
 function WeaponTracker(ting)
   local wep = ting
+  if wep.tingX > 0 and wep.tingX < gameW and wep.tingY > 0 and wep.tingY < gameH then
+    return "IN"
+  end
   if wep.tingX < 0 and wep.tingY < 0 then
     return "tL"
   end
@@ -278,7 +300,7 @@ function _update(dt)
   LeftRight(dt)
   UpDown(dt)
   GravEf(weapon[1], shapes[1])
-  print(WeaponTracker(weapon[1]))
+  ArrowMaker(WeaponTracker(weapon[1]), weapon[1])
   while #stars < starNum do
     MakeStars()
   end
