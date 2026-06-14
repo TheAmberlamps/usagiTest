@@ -103,6 +103,20 @@ function ArrowMaker(ting, w)
       nA.y1 = gameH
       nA.y2 = gameH - len
       nA.y3 = gameH
+    else
+      nA.y1 = wep.tingY
+      nA.x2 = len
+      nA.x3 = len
+      nA.y2 = wep.tingY - len
+      nA.y3 = wep.tingY + len
+    end
+  end
+  if data == 'tR' or data == "r" or data == "bR" then
+    nA.x1 = gameW
+    if data == 'tR' then
+      nA.x2 = gameW
+      nA.y2 = len
+      nA.x3 = gameW - len
     end
   end
   --if data == "tR" or data == "r" or  data == "bR" then
