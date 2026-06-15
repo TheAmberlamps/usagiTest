@@ -117,11 +117,35 @@ function ArrowMaker(ting, w)
       nA.x2 = gameW
       nA.y2 = len
       nA.x3 = gameW - len
+    elseif data == 'bR' then
+      nA.y1 = gameH
+      nA.x2 = gameW - len
+      nA.y2 = gameH
+      nA.x3 = gameW
+      nA.y3 = gameH - len
+    else
+      nA.y1 = wep.tingY
+      nA.x2 = gameW - len
+      nA.y2 = wep.tingY + len
+      nA.x3 = gameW - len
+      nA.y3 = wep.tingY - len
     end
   end
-  --if data == "tR" or data == "r" or  data == "bR" then
-    --nA.x1 = gameW
-  --end
+  if data == "u" then
+    nA.x1 = wep.tingX
+    nA.x2 = wep.tingX + len
+    nA.y2 = len
+    nA.x3 = wep.tingX - len
+    nA.y3 = len
+  end
+  if data == "d" then
+    nA.x1 = wep.tingX
+    nA.y1 = gameH
+    nA.x2 = wep.tingX - len
+    nA.y2 = gameH - len
+    nA.x3 = wep.tingX + len
+    nA.y3 = gameH - len
+  end
   table.insert(arrow, nA)
 end
 
