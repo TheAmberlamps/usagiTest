@@ -78,7 +78,25 @@ function GravEf(sub, obj)
   end
 end
 
+--gfx.text(text, x, y, color)
+--gfx.text_ex(text, x, y, scale, rotation, color, alpha)
+
 function ArrowMaker(ting, w)
+  function DistCalc(wep)
+    local w = wep
+    if wep.tingX < 0 then
+      print("X: " .. wep.tingX)
+    end
+    if wep.tingX > gameW then
+      print("X: " .. wep.tingX - gameW)
+    end
+    if wep.tingY < 0 then
+      print("Y: " .. wep.tingY)
+    end
+    if wep.tingY > gameH then
+      print("Y: " .. wep.tingY - gameH)
+    end
+  end
   local data = ting
   local len = 10
   arrow = {}
@@ -86,13 +104,15 @@ function ArrowMaker(ting, w)
     return
   end
   local wep = w
+  DistCalc(wep)
   local nA = {
     x1 = 0,
     y1 = 0,
     x2 = 0,
     y2 = 0,
     x3 = 0,
-    y3 = 0
+    y3 = 0,
+    text = ''
   }
   if data == "tL" or data == "l" or data == "bL" then
     if data == "tL" then
@@ -368,6 +388,8 @@ function _draw(dt)
   end
   for i=1, #arrow do
     gfx.tri_fill(arrow[1].x1, arrow[1].y1, arrow[1].x2, arrow[1].y2, arrow[1].x3, arrow[1].y3, gfx.COLOR_WHITE)
+    -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
+    -- leave drawing for the draw loop and updates for the update loop; update data then draw it
   end
   for i=1, #stars do
     gfx.px(stars[i].tingX, stars[i].tingY, gfx.COLOR_WHITE)
