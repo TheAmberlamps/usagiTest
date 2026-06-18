@@ -41,6 +41,14 @@ function RotVal(dt, interval)
   return math.rad(ellRot)
 end
 
+function Rounder(val)
+  if type(val) == "string" then
+    return type(val)
+  else
+    return tostring(math.floor(val + 0.5))
+  end
+end
+
 function FlipNum(interval)
   if subVal then
     sprWid -= interval
@@ -82,20 +90,15 @@ end
 --gfx.text_ex(text, x, y, scale, rotation, color, alpha)
 
 function ArrowMaker(ting, w)
-  function DistCalc(wep)
-    local w = wep
-    if wep.tingX < 0 then
-      print("X: " .. wep.tingX)
-    end
-    if wep.tingX > gameW then
-      print("X: " .. wep.tingX - gameW)
-    end
-    if wep.tingY < 0 then
-      print("Y: " .. wep.tingY)
-    end
-    if wep.tingY > gameH then
-      print("Y: " .. wep.tingY - gameH)
-    end
+  function GetDist(dir, w)
+    local origin = {0, 0}
+    local dest = {0, 0}
+    dest[1] = w.tingX
+    print(dest)
+    dest[2] = w.tingY
+    --util.vec_normalize({x, y})
+    --dest = util.vec_normalize(dest)
+    --print(dest)
   end
   local data = ting
   local len = 10
@@ -104,7 +107,6 @@ function ArrowMaker(ting, w)
     return
   end
   local wep = w
-  DistCalc(wep)
   local nA = {
     x1 = 0,
     y1 = 0,
@@ -112,7 +114,9 @@ function ArrowMaker(ting, w)
     y2 = 0,
     x3 = 0,
     y3 = 0,
-    text = ''
+    tX = 0,
+    tY = 0,
+    dText = ''
   }
   if data == "tL" or data == "l" or data == "bL" then
     if data == "tL" then
@@ -129,10 +133,14 @@ function ArrowMaker(ting, w)
       nA.x3 = len
       nA.y2 = wep.tingY - len
       nA.y3 = wep.tingY + len
+      nA.tX = centW
+      nA.tY = centH
+      nA.dText = -wep.tingX
     end
   end
   if data == 'tR' or data == "r" or data == "bR" then
     nA.x1 = gameW
+    GetDist(data, wep)
     if data == 'tR' then
       nA.x2 = gameW
       nA.y2 = len
@@ -149,6 +157,9 @@ function ArrowMaker(ting, w)
       nA.y2 = wep.tingY + len
       nA.x3 = gameW - len
       nA.y3 = wep.tingY - len
+      nA.tX = centW
+      nA.tY = centH
+      nA.dText = wep.tingX - gameW
     end
   end
   if data == "u" then
@@ -157,6 +168,9 @@ function ArrowMaker(ting, w)
     nA.y2 = len
     nA.x3 = wep.tingX - len
     nA.y3 = len
+    nA.tX = centW
+    nA.tY = centH
+    nA.dText = -wep.tingY
   end
   if data == "d" then
     nA.x1 = wep.tingX
@@ -165,6 +179,9 @@ function ArrowMaker(ting, w)
     nA.y2 = gameH - len
     nA.x3 = wep.tingX + len
     nA.y3 = gameH - len
+    nA.tX = centW
+    nA.tY = centH
+    nA.dText = wep.tingY - gameH
   end
   table.insert(arrow, nA)
 end
@@ -388,6 +405,7 @@ function _draw(dt)
   end
   for i=1, #arrow do
     gfx.tri_fill(arrow[1].x1, arrow[1].y1, arrow[1].x2, arrow[1].y2, arrow[1].x3, arrow[1].y3, gfx.COLOR_WHITE)
+    gfx.text(Rounder(arrow[1].dText), arrow[1].tX, arrow[1].tY, gfx.COLOR_RED)
     -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
     -- leave drawing for the draw loop and updates for the update loop; update data then draw it
   end
