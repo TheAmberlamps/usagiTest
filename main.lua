@@ -90,22 +90,9 @@ end
 --gfx.text_ex(text, x, y, scale, rotation, color, alpha)
 
 function ArrowMaker(ting, w)
-  function GetDist(dir, w)
-    local origin = {0, 0}
-    local dest = {0, 0}
-    dest[1] = w.tingX
-    print(dest)
-    dest[2] = w.tingY
-    --util.vec_normalize({x, y})
-    --dest = util.vec_normalize(dest)
-    --print(dest)
-  end
-  local data = ting
   local len = 10
+  local data = ting
   arrow = {}
-  if data == "IN" then
-    return
-  end
   local wep = w
   local nA = {
     x1 = 0,
@@ -116,50 +103,91 @@ function ArrowMaker(ting, w)
     y3 = 0,
     tX = 0,
     tY = 0,
+    tW = 0,
+    tH = 0,
     dText = ''
   }
+  function GetDist(dir, w)
+    local origin = {0, 0}
+    if dir == 'r' or dir == 'tR' or dir == 'bR' then
+      origin[1] = gameW
+      if data == 'bR' then
+        origin[2] = gameH
+      end
+      if data == 'r' then
+        origin[2] = w.tingY
+      end
+    end
+    if dir == 'l' or dir == 'bL' or dir == 'tL' then
+      if data == 'bL' then
+        origin[2] = gameH
+      end
+      if data == 'l' then
+        origin[2] = w.tingY
+      end
+    end
+    if dir == 'u' then
+      origin[1] = w.tingX
+    end
+    if dir == 'd' then
+      origin[1] = w.tingX
+      origin[2] = gameH
+    end
+    local dest = {0, 0}
+    dest[1] = w.tingX
+    dest[2] = w.tingY
+    local lenV = util.vec_dist({x=origin[1], y=origin[2]}, {x=dest[1], y=dest[2]})
+    return lenV
+  end
+  if data == "IN" then
+    return
+  end
+  nA.dText = tostring(Rounder(GetDist(data, wep)))
+  nA.tW, nA.tH = usagi.measure_text(nA.dText)
+  print(nA.tW)
   if data == "tL" or data == "l" or data == "bL" then
+    nA.tX = len * 1.5
     if data == "tL" then
       nA.x2 = len
       nA.y3 = len
+      nA.tY = len * 1.5
     elseif data == "bL" then
       nA.x3 = 10
       nA.y1 = gameH
       nA.y2 = gameH - len
       nA.y3 = gameH
+      nA.tY = gameH - len * 1.5
     else
       nA.y1 = wep.tingY
       nA.x2 = len
       nA.x3 = len
       nA.y2 = wep.tingY - len
       nA.y3 = wep.tingY + len
-      nA.tX = centW
-      nA.tY = centH
-      nA.dText = -wep.tingX
+      nA.tY = wep.tingY - nA.tH / 2
     end
   end
   if data == 'tR' or data == "r" or data == "bR" then
     nA.x1 = gameW
-    GetDist(data, wep)
+    nA.tX = gameW - len * 1.5
     if data == 'tR' then
       nA.x2 = gameW
       nA.y2 = len
       nA.x3 = gameW - len
+      nA.tY = len * 1.5
     elseif data == 'bR' then
       nA.y1 = gameH
       nA.x2 = gameW - len
       nA.y2 = gameH
       nA.x3 = gameW
       nA.y3 = gameH - len
+      nA.tY = gameH - len * 1.5
     else
       nA.y1 = wep.tingY
       nA.x2 = gameW - len
       nA.y2 = wep.tingY + len
       nA.x3 = gameW - len
       nA.y3 = wep.tingY - len
-      nA.tX = centW
-      nA.tY = centH
-      nA.dText = wep.tingX - gameW
+      nA.tY = wep.tingY - nA.tH / 2
     end
   end
   if data == "u" then
@@ -168,9 +196,8 @@ function ArrowMaker(ting, w)
     nA.y2 = len
     nA.x3 = wep.tingX - len
     nA.y3 = len
-    nA.tX = centW
-    nA.tY = centH
-    nA.dText = -wep.tingY
+    nA.tX = wep.tingX - nA.tW / 2
+    nA.tY = len * 1.5
   end
   if data == "d" then
     nA.x1 = wep.tingX
@@ -179,9 +206,8 @@ function ArrowMaker(ting, w)
     nA.y2 = gameH - len
     nA.x3 = wep.tingX + len
     nA.y3 = gameH - len
-    nA.tX = centW
-    nA.tY = centH
-    nA.dText = wep.tingY - gameH
+    nA.tX = wep.tingX - nA.tW / 2
+    nA.tY = gameH - len * 1.5
   end
   table.insert(arrow, nA)
 end
@@ -393,7 +419,6 @@ end
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
-  gfx.text("Hello, Usagi!", 10, 10, gfx.COLOR_WHITE)
   for i=1, #shapes do
     -- I know I can make this work
     --gfx.shapes[1].type(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
@@ -405,7 +430,7 @@ function _draw(dt)
   end
   for i=1, #arrow do
     gfx.tri_fill(arrow[1].x1, arrow[1].y1, arrow[1].x2, arrow[1].y2, arrow[1].x3, arrow[1].y3, gfx.COLOR_WHITE)
-    gfx.text(Rounder(arrow[1].dText), arrow[1].tX, arrow[1].tY, gfx.COLOR_RED)
+    gfx.text(arrow[1].dText, arrow[1].tX, arrow[1].tY, gfx.COLOR_RED)
     -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
     -- leave drawing for the draw loop and updates for the update loop; update data then draw it
   end
