@@ -89,9 +89,9 @@ end
 --gfx.text(text, x, y, color)
 --gfx.text_ex(text, x, y, scale, rotation, color, alpha)
 
-function ArrowMaker(ting, w)
+function ArrowMaker(d, w)
   local len = 10
-  local data = ting
+  local data = d
   arrow = {}
   local wep = w
   local nA = {
@@ -144,19 +144,18 @@ function ArrowMaker(ting, w)
   end
   nA.dText = tostring(Rounder(GetDist(data, wep)))
   nA.tW, nA.tH = usagi.measure_text(nA.dText)
-  print(nA.tW)
   if data == "tL" or data == "l" or data == "bL" then
     nA.tX = len * 1.5
     if data == "tL" then
       nA.x2 = len
       nA.y3 = len
-      nA.tY = len * 1.5
+      nA.tY = (len * 1.5) - nA.tH / 2
     elseif data == "bL" then
       nA.x3 = 10
       nA.y1 = gameH
       nA.y2 = gameH - len
       nA.y3 = gameH
-      nA.tY = gameH - len * 1.5
+      nA.tY = gameH - (len * 1.5) - nA.tH / 2
     else
       nA.y1 = wep.tingY
       nA.x2 = len
@@ -168,19 +167,19 @@ function ArrowMaker(ting, w)
   end
   if data == 'tR' or data == "r" or data == "bR" then
     nA.x1 = gameW
-    nA.tX = gameW - len * 1.5
+    nA.tX = gameW - (len * 1.5) - nA.tW
     if data == 'tR' then
       nA.x2 = gameW
       nA.y2 = len
       nA.x3 = gameW - len
-      nA.tY = len * 1.5
+      nA.tY = (len * 1.5) - nA.tH / 2
     elseif data == 'bR' then
       nA.y1 = gameH
       nA.x2 = gameW - len
       nA.y2 = gameH
       nA.x3 = gameW
       nA.y3 = gameH - len
-      nA.tY = gameH - len * 1.5
+      nA.tY = gameH - (len * 1.5) - nA.tH / 2
     else
       nA.y1 = wep.tingY
       nA.x2 = gameW - len
@@ -197,7 +196,7 @@ function ArrowMaker(ting, w)
     nA.x3 = wep.tingX - len
     nA.y3 = len
     nA.tX = wep.tingX - nA.tW / 2
-    nA.tY = len * 1.5
+    nA.tY = (len * 1.5) - nA.tH / 2
   end
   if data == "d" then
     nA.x1 = wep.tingX
@@ -207,7 +206,7 @@ function ArrowMaker(ting, w)
     nA.x3 = wep.tingX + len
     nA.y3 = gameH - len
     nA.tX = wep.tingX - nA.tW / 2
-    nA.tY = gameH - len * 1.5
+    nA.tY = gameH - (len * 1.5) - (nA.tH / 2)
   end
   table.insert(arrow, nA)
 end
