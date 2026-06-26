@@ -385,7 +385,7 @@ function Movement(dt)
     State.shapes[1].y += State.shapes[1].speedY
   end
   if State.shapes[1].y - State.shapes[1].r <= 0 then
-    State.shapes[1].tingY = 0 + State.shapes[1].centSize
+    State.shapes[1].y = 0 + State.shapes[1].r
     State.shapes[1].speedY = -State.shapes[1].speedY
 
   end
