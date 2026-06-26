@@ -14,19 +14,19 @@ local centW = usagi.GAME_W / 2
 local centH = usagi.GAME_H / 2
 local starNum = 50
 local ellRot = 0
-local shapes = {}
 local arrow = {}
 local weapon = {}
-local stars = {}
 
 function _init()
   -- Live reload preserves globals across saved edits but resets locals.
   -- Stash mutable game state in a capitalized global like `State` so it
   -- survives reloads; F5 calls _init again to reset.
   State = {
-    timer = 0
+    timer = 0,
+    shapes = {},
+    stars = {}
   }
-    while  #stars < starNum do
+    while #State.stars < starNum do
       MakeStars(1)
     end
   DrawingTing('circ')
@@ -67,22 +67,22 @@ end
 function GravEf(sub, obj)
   local wep = sub
   local player = obj
-  if wep.tingX > player.tingX then
+  if wep.x > player.x then
     wep.speedX -= player.mass
-    wep.tingX += wep.speedX
+    wep.x += wep.speedX
   end
-  if wep.tingX < player.tingX then
+  if wep.x < player.x then
     wep.speedX += player.mass
-    wep.tingX += wep.speedX
+    wep.x += wep.speedX
   end
   --print(wep.speedX)
-  if wep.tingY > player.tingY then
+  if wep.y > player.y then
     wep.speedY -= player.mass
-    wep.tingY += wep.speedY
+    wep.y += wep.speedY
   end
-  if wep.tingY < player.tingY then
+  if wep.y < player.y then
     wep.speedY += player.mass
-    wep.tingY += wep.speedY
+    wep.y += wep.speedY
   end
 end
 
@@ -115,7 +115,7 @@ function ArrowMaker(d, w)
         origin[2] = gameH
       end
       if data == 'r' then
-        origin[2] = w.tingY
+        origin[2] = w.y
       end
     end
     if dir == 'l' or dir == 'bL' or dir == 'tL' then
@@ -123,19 +123,19 @@ function ArrowMaker(d, w)
         origin[2] = gameH
       end
       if data == 'l' then
-        origin[2] = w.tingY
+        origin[2] = w.y
       end
     end
     if dir == 'u' then
-      origin[1] = w.tingX
+      origin[1] = w.x
     end
     if dir == 'd' then
-      origin[1] = w.tingX
+      origin[1] = w.x
       origin[2] = gameH
     end
     local dest = {0, 0}
-    dest[1] = w.tingX
-    dest[2] = w.tingY
+    dest[1] = w.x
+    dest[2] = w.y
     local lenV = util.vec_dist({x=origin[1], y=origin[2]}, {x=dest[1], y=dest[2]})
     return lenV
   end
@@ -157,12 +157,12 @@ function ArrowMaker(d, w)
       nA.y3 = gameH
       nA.tY = gameH - (len * 1.5) - nA.tH / 2
     else
-      nA.y1 = wep.tingY
+      nA.y1 = wep.y
       nA.x2 = len
       nA.x3 = len
-      nA.y2 = wep.tingY - len
-      nA.y3 = wep.tingY + len
-      nA.tY = wep.tingY - nA.tH / 2
+      nA.y2 = wep.y - len
+      nA.y3 = wep.y + len
+      nA.tY = wep.y - nA.tH / 2
     end
   end
   if data == 'tR' or data == "r" or data == "bR" then
@@ -181,66 +181,66 @@ function ArrowMaker(d, w)
       nA.y3 = gameH - len
       nA.tY = gameH - (len * 1.5) - nA.tH / 2
     else
-      nA.y1 = wep.tingY
+      nA.y1 = wep.y
       nA.x2 = gameW - len
-      nA.y2 = wep.tingY + len
+      nA.y2 = wep.y + len
       nA.x3 = gameW - len
-      nA.y3 = wep.tingY - len
-      nA.tY = wep.tingY - nA.tH / 2
+      nA.y3 = wep.y - len
+      nA.tY = wep.y - nA.tH / 2
     end
   end
   if data == "u" then
-    nA.x1 = wep.tingX
-    nA.x2 = wep.tingX + len
+    nA.x1 = wep.x
+    nA.x2 = wep.x + len
     nA.y2 = len
-    nA.x3 = wep.tingX - len
+    nA.x3 = wep.x - len
     nA.y3 = len
-    nA.tX = wep.tingX - nA.tW / 2
+    nA.tX = wep.x - nA.tW / 2
     nA.tY = (len * 1.5) - nA.tH / 2
   end
   if data == "d" then
-    nA.x1 = wep.tingX
+    nA.x1 = wep.x
     nA.y1 = gameH
-    nA.x2 = wep.tingX - len
+    nA.x2 = wep.x - len
     nA.y2 = gameH - len
-    nA.x3 = wep.tingX + len
+    nA.x3 = wep.x + len
     nA.y3 = gameH - len
-    nA.tX = wep.tingX - nA.tW / 2
-    nA.tY = gameH - (len * 1.5) - (nA.tH / 2)
+    nA.tX = wep.x - nA.tW / 2
+    nA.tY = gameH - (len * 1.5) - nA.tH / 2
   end
   table.insert(arrow, nA)
 end
 
 function WeaponTracker(ting)
   local wep = ting
-  if wep.tingX > 0 and wep.tingX < gameW and wep.tingY > 0 and wep.tingY < gameH then
+  if wep.x > 0 and wep.x < gameW and wep.y > 0 and wep.y < gameH then
     return "IN"
   end
-  if wep.tingX < 0 and wep.tingY < 0 then
+  if wep.x < 0 and wep.y < 0 then
     return "tL"
   end
-  if wep.tingX < 0 and wep.tingY > gameH then
+  if wep.x < 0 and wep.y > gameH then
     return "bL"
   end
-  if wep.tingX > gameW and wep.tingY < 0 then
+  if wep.x > gameW and wep.y < 0 then
     return "tR"
   end
-  if wep.tingX > gameW and wep.tingY > gameH then
+  if wep.x > gameW and wep.y > gameH then
     return "bR"
   end
-  if wep.tingX > 0 and wep.tingX < gameW then
-    if wep.tingY < 0 then
+  if wep.x > 0 and wep.x < gameW then
+    if wep.y < 0 then
       return "u"
     end
-    if wep.tingY > gameH then
+    if wep.y > gameH then
       return "d"
     end
   end
-  if wep.tingY > 0 and wep.tingY < gameH then
-    if wep.tingX < 0 then
+  if wep.y > 0 and wep.y < gameH then
+    if wep.x < 0 then
       return "l"
     end
-    if wep.tingX > gameW then
+    if wep.x > gameW then
       return "r"
     end
   end
@@ -259,29 +259,31 @@ end
 
 function DrawingTing(typeInput)
   local newTing = {
+    x = centW,
+    y = centH,
+    r = 5,
     type = typeInput,
-    centSize = 5,
     mass = 0.1,
-    tingX = centW,
-    tingY = centH,
     speedX = 0,
     speedY = 0,
     movX = false,
     movY = false,
     flipVal = sprWid,
-    rotVal = 0
+    rotVal = 0,
+    alive = true
   }
-  table.insert(shapes, newTing)
+  table.insert(State.shapes, newTing)
 end
 
 function AntiMatter(x, y)
   local AMSprite = {
-    radius = 2.5,
-    tingX = x,
-    tingY = y,
+    x = x,
+    y = y,
+    r = 2.5,
     speedX = 0,
     speedY = 0,
-    color = ColourShift(0)
+    color = ColourShift(0),
+    alive = true
   }
   table.insert(weapon, AMSprite)
 end
@@ -295,137 +297,149 @@ function MakeStars(num)
   if num then
     star.tingX = math.random(1, usagi.GAME_W)
   end
-  table.insert(stars, star)
+  table.insert(State.stars, star)
 end
 
-function LeftRight(dt)
-  if input.pressed(input.LEFT) or input.held(input.LEFT) then
-    shapes[1].movX = true
-    shapes[1].speedX -= accel - dt
-    if shapes[1].speedX < -10 then
-      shapes[1].speedX = -10
-    end
-    shapes[1].tingX += shapes[1].speedX
-  end
-  if input.released(input.LEFT) then
-    shapes[1].movX = false
-  end
-  if input.pressed(input.RIGHT) or input.held(input.RIGHT) then
-    shapes[1].movX = true
-    shapes[1].speedX += accel + dt
-    if shapes[1].speedX > 10 then
-      shapes[1].speedX = 10
-    end
-    shapes[1].tingX += shapes[1].speedX
-  end
-  if input.released(input.RIGHT) then
-    shapes[1].movX = false
-  end
-  if shapes[1].movX == false then 
-    if shapes[1].speedX > 0 then
-      shapes[1].speedX -= accel
-      if shapes[1].speedX < 0 then
-        shapes[1].speedX = 0
-      end
-    else if shapes[1].speedX < 0 then
-      shapes[1].speedX += accel
-      if shapes[1].speedX > 0 then
-        shapes[1].speedX = 0
-      end
-    end
-    end
-    shapes[1].tingX += shapes[1].speedX
-  end
-  if shapes[1].tingX - shapes[1].centSize <= 0 then
-    shapes[1].tingX = 0 + shapes[1].centSize
-    shapes[1].speedX = -shapes[1].speedX
-
-  end
-  if shapes[1].tingX + shapes[1].centSize >= usagi.GAME_W then
-    shapes[1].tingX = usagi.GAME_W - shapes[1].centSize
-    shapes[1].speedX = -shapes[1].speedX
-  end
-end
-
-function UpDown(dt)
+function Movement(dt)
   if input.pressed(input.UP) or input.held(input.UP) then
-    shapes[1].movY = true
-    shapes[1].speedY -= accel - dt
-    if shapes[1].speedY < -10 then
-      shapes[1].speedY = -10
+    State.shapes[1].movY = true
+    State.shapes[1].speedY -= accel - dt
+    if State.shapes[1].speedY < -10 then
+      State.shapes[1].speedY = -10
     end
-    shapes[1].tingY += shapes[1].speedY
+    State.shapes[1].y += State.shapes[1].speedY
   end
   if input.released(input.UP) then
-    shapes[1].movY = false
+    State.shapes[1].movY = false
   end
   if input.pressed(input.DOWN) or input.held(input.DOWN) then
-    shapes[1].movY = true
-    shapes[1].speedY += accel + dt
-    if shapes[1].speedY > 10 then
-      shapes[1].speedY = 10
+    State.shapes[1].movY = true
+    State.shapes[1].speedY += accel + dt
+    if State.shapes[1].speedY > 10 then
+      State.shapes[1].speedY = 10
     end
-    shapes[1].tingY += shapes[1].speedY
+    State.shapes[1].y += State.shapes[1].speedY
   end
   if input.released(input.DOWN) then
-    shapes[1].movY = false
+    State.shapes[1].movY = false
   end
-  if shapes[1].movY == false then 
-    if shapes[1].speedY > 0 then
-      shapes[1].speedY -= accel
-      if shapes[1].speedY < 0 then
-        shapes[1].speedY = 0
+  if input.pressed(input.LEFT) or input.held(input.LEFT) then
+    State.shapes[1].movX = true
+    State.shapes[1].speedX -= accel - dt
+    if State.shapes[1].speedX < -10 then
+      State.shapes[1].speedX = -10
+    end
+    State.shapes[1].x += State.shapes[1].speedX
+  end
+  if input.released(input.LEFT) then
+    State.shapes[1].movX = false
+  end
+  if input.pressed(input.RIGHT) or input.held(input.RIGHT) then
+    State.shapes[1].movX = true
+    State.shapes[1].speedX += accel + dt
+    if State.shapes[1].speedX > 10 then
+      State.shapes[1].speedX = 10
+    end
+    State.shapes[1].x += State.shapes[1].speedX
+  end
+  if input.released(input.RIGHT) then
+    State.shapes[1].movX = false
+  end
+  if State.shapes[1].movX == false then 
+    if State.shapes[1].speedX > 0 then
+      State.shapes[1].speedX -= accel
+      if State.shapes[1].speedX < 0 then
+        State.shapes[1].speedX = 0
       end
-    else if shapes[1].speedY < 0 then
-      shapes[1].speedY += accel
-      if shapes[1].speedY > 0 then
-        shapes[1].speedY = 0
+    else if State.shapes[1].speedX < 0 then
+      State.shapes[1].speedX += accel
+      if State.shapes[1].speedX > 0 then
+        State.shapes[1].speedX = 0
       end
     end
     end
-    shapes[1].tingY += shapes[1].speedY
+    State.shapes[1].x += State.shapes[1].speedX
   end
-  if shapes[1].tingY - shapes[1].centSize <= 0 then
-    shapes[1].tingY = 0 + shapes[1].centSize
-    shapes[1].speedY = -shapes[1].speedY
+  if State.shapes[1].x - State.shapes[1].r <= 0 then
+    State.shapes[1].x = 0 + State.shapes[1].r
+    State.shapes[1].speedX = -State.shapes[1].speedX
 
   end
-  if shapes[1].tingY + shapes[1].centSize >= usagi.GAME_H then
-    shapes[1].tingY = usagi.GAME_H - shapes[1].centSize
-    shapes[1].speedY = -shapes[1].speedY
+  if State.shapes[1].x + State.shapes[1].r >= usagi.GAME_W then
+    State.shapes[1].x = usagi.GAME_W - State.shapes[1].r
+    State.shapes[1].speedX = -State.shapes[1].speedX
+  end
+  if State.shapes[1].movY == false then 
+    if State.shapes[1].speedY > 0 then
+      State.shapes[1].speedY -= accel
+      if State.shapes[1].speedY < 0 then
+        State.shapes[1].speedY = 0
+      end
+    else if State.shapes[1].speedY < 0 then
+      State.shapes[1].speedY += accel
+      if State.shapes[1].speedY > 0 then
+        State.shapes[1].speedY = 0
+      end
+    end
+    end
+    State.shapes[1].y += State.shapes[1].speedY
+  end
+  if State.shapes[1].y - State.shapes[1].r <= 0 then
+    State.shapes[1].tingY = 0 + State.shapes[1].centSize
+    State.shapes[1].speedY = -State.shapes[1].speedY
+
+  end
+  if State.shapes[1].y + State.shapes[1].r >= usagi.GAME_H then
+    State.shapes[1].y = usagi.GAME_H - State.shapes[1].r
+    State.shapes[1].speedY = -State.shapes[1].speedY
+  end
+end
+
+function CollChk(c1, c2)
+  local mainC = c1
+  local secC = c2
+  local result = util.circ_overlap(mainC, secC)
+  if result then
+    mainC.alive = false
+    secC.alive = false
+    -- removal of player / weapon is up next, then enemies, then enemy projectiles
+    --State.shapes = {}
+    return true
+  else
+    return false
   end
 end
 
 function _update(dt)
-  LeftRight(dt)
-  UpDown(dt)
-  GravEf(weapon[1], shapes[1])
+  Movement(dt)
+  GravEf(weapon[1], State.shapes[1])
   ArrowMaker(WeaponTracker(weapon[1]), weapon[1])
-  while #stars < starNum do
+  CollChk(State.shapes[1], weapon[1])
+  while #State.stars < starNum do
     MakeStars()
   end
-  for i=#stars, 1, -1 do
-    if stars[i].tingX <= 0 then
-      table.remove(stars, i)
+  for i=#State.stars, 1, -1 do
+    if State.stars[i].tingX <= 0 then
+      table.remove(State.stars, i)
     else
-      stars[i].tingX -= stars[i].speed
+      State.stars[i].tingX -= State.stars[i].speed
     end
   end
-  shapes[1].rotVal = RotVal(dt, timeInt)
-  shapes[1].flipVal = FlipNum(0.5)
+  State.shapes[1].rotVal = RotVal(dt, timeInt)
+  State.shapes[1].flipVal = FlipNum(0.5)
   weapon[1].color = ColourShift(colVal)
 end 
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
-  for i=1, #shapes do
+  for i=1, #State.shapes do
     -- I know I can make this work
     --gfx.shapes[1].type(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
-    gfx.sspr_ex(0, 0, 16, 16, shapes[1].tingX - shapes[1].flipVal, shapes[1].tingY - 16, shapes[1].flipVal * 2, 16 * 2 , false, false, shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
-    gfx.circ_fill(shapes[1].tingX, shapes[1].tingY, shapes[1].centSize, gfx.COLOR_WHITE)
+    gfx.sspr_ex(0, 0, 16, 16, State.shapes[1].x - State.shapes[1].flipVal, State.shapes[1].y - 16, State.shapes[1].flipVal * 2, 16 * 2 , false, false, State.shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
+    gfx.circ_fill(State.shapes[1].x, State.shapes[1].y, State.shapes[1].r, gfx.COLOR_WHITE)
   end
   for i=1, #weapon do
-    gfx.circ_fill(weapon[i].tingX, weapon[i].tingY, weapon[i].radius, weapon[1].color)
+    gfx.circ_fill(weapon[i].x, weapon[i].y, weapon[i].r, weapon[1].color)
   end
   for i=1, #arrow do
     gfx.tri_fill(arrow[1].x1, arrow[1].y1, arrow[1].x2, arrow[1].y2, arrow[1].x3, arrow[1].y3, gfx.COLOR_WHITE)
@@ -433,7 +447,7 @@ function _draw(dt)
     -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
     -- leave drawing for the draw loop and updates for the update loop; update data then draw it
   end
-  for i=1, #stars do
-    gfx.px(stars[i].tingX, stars[i].tingY, gfx.COLOR_WHITE)
+  for i=1, #State.stars do
+    gfx.px(State.stars[i].tingX, State.stars[i].tingY, gfx.COLOR_WHITE)
   end
 end
