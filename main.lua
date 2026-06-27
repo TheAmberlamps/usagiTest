@@ -24,13 +24,15 @@ function _init()
   State = {
     timer = 0,
     shapes = {},
-    stars = {}
+    stars = {},
+    bullets = {}
   }
     while #State.stars < starNum do
       MakeStars(1)
     end
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
+  BulletMaker(gameW, centH)
 end
 
 function RotVal(dt, interval)
@@ -209,6 +211,27 @@ function ArrowMaker(d, w)
     nA.tY = gameH - (len * 1.5) - nA.tH / 2
   end
   table.insert(arrow, nA)
+end
+
+function BulletMaker(x, y)
+  local bullet = {
+    x = x,
+    y = y,
+    r = 5,
+    vel = 2,
+    colIn = gfx.COLOR_WHITE,
+    colOut = gfx.COLOR_ORANGE
+  }
+  table.insert(State.bullets, bullet)
+end
+
+function BulletMov(bul)
+  local bul = bul
+  bul.x = bul.x - bul.vel
+  if bul.x < 0 - bul.r then
+    State.bullets = {}
+    BulletMaker(gameW, centH)
+  end
 end
 
 function WeaponTracker(ting)
@@ -412,6 +435,8 @@ end
 
 function _update(dt)
   Movement(dt)
+  
+  BulletMov(State.bullets[1])
   GravEf(weapon[1], State.shapes[1])
   ArrowMaker(WeaponTracker(weapon[1]), weapon[1])
   CollChk(State.shapes[1], weapon[1])
@@ -433,10 +458,15 @@ end
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
   for i=1, #State.shapes do
+
     -- I know I can make this work
     --gfx.shapes[1].type(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
     gfx.sspr_ex(0, 0, 16, 16, State.shapes[1].x - State.shapes[1].flipVal, State.shapes[1].y - 16, State.shapes[1].flipVal * 2, 16 * 2 , false, false, State.shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
     gfx.circ_fill(State.shapes[1].x, State.shapes[1].y, State.shapes[1].r, gfx.COLOR_WHITE)
+  end
+  for i=1, #State.bullets do
+    gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r, State.bullets[i].colOut)
+    gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r / 2, State.bullets[i].colIn)
   end
   for i=1, #weapon do
     gfx.circ_fill(weapon[i].x, weapon[i].y, weapon[i].r, weapon[1].color)
