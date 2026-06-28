@@ -32,7 +32,7 @@ function _init()
     end
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
-  BulletMaker(gameW, centH)
+  BulletMaker(gameW, centH, VelGen())
 end
 
 function RotVal(dt, interval)
@@ -41,6 +41,15 @@ function RotVal(dt, interval)
     ellRot = ellRot - 360
   end
   return math.rad(ellRot)
+end
+
+function VelGen()
+  -- while this is a great random generator, it's 
+  --local newVel = {x=2, y=0.5}
+  local newVel = {x=0,y=0}
+  newVel.x = math.random(2, 4)
+  newVel.y = math.random(-1, 1)
+  return newVel
 end
 
 function Rounder(val)
@@ -213,24 +222,29 @@ function ArrowMaker(d, w)
   table.insert(arrow, nA)
 end
 
-function BulletMaker(x, y)
+function BulletMaker(x, y, v)
   local bullet = {
     x = x,
     y = y,
     r = 5,
-    vel = 2,
+    --vel = {x = 2, y = -1},
+    vel = v,
     colIn = gfx.COLOR_WHITE,
-    colOut = gfx.COLOR_ORANGE
+    colOut = gfx.COLOR_ORANGE,
+    alive = true
   }
   table.insert(State.bullets, bullet)
 end
 
-function BulletMov(bul)
-  local bul = bul
-  bul.x = bul.x - bul.vel
-  if bul.x < 0 - bul.r then
-    State.bullets = {}
-    BulletMaker(gameW, centH)
+function BulletMov(buls)
+  local bArr = buls
+  for i=#bArr, 1, -1 do
+    bArr[i].x = bArr[i].x - bArr[i].vel.x
+    bArr[i].y = bArr[i].y + bArr[i].vel.y
+    if bArr[i].x < 0 - bArr[i].r or bArr[i].y < 0 - bArr[i].r or bArr[i].y > gameH + bArr[i].r then
+      table.remove(bArr, i)
+      BulletMaker(gameW, centH, VelGen())
+    end
   end
 end
 
@@ -435,8 +449,7 @@ end
 
 function _update(dt)
   Movement(dt)
-  
-  BulletMov(State.bullets[1])
+  BulletMov(State.bullets)
   GravEf(weapon[1], State.shapes[1])
   ArrowMaker(WeaponTracker(weapon[1]), weapon[1])
   CollChk(State.shapes[1], weapon[1])
