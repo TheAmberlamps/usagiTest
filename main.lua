@@ -2,7 +2,6 @@ function _config()
   return { name = "Game", game_id = "com.usagiengine.YOURGAMENAME" }
 end
 
-local radius = 35
 local timeInt = 1
 local colVal = 1
 local sprWid = 16
@@ -15,7 +14,6 @@ local centH = usagi.GAME_H / 2
 local starNum = 50
 local ellRot = 0
 local arrow = {}
-local weapon = {}
 
 function _init()
   -- Live reload preserves globals across saved edits but resets locals.
@@ -24,6 +22,7 @@ function _init()
   State = {
     timer = 0,
     shapes = {},
+    weapon = {},
     stars = {},
     bullets = {}
   }
@@ -32,7 +31,7 @@ function _init()
     end
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
-  BulletMaker(gameW, centH, VelGen())
+  BulletMaker(State.shapes[1], gameW, centH, 150)
 end
 
 function RotVal(dt, interval)
@@ -41,15 +40,6 @@ function RotVal(dt, interval)
     ellRot = ellRot - 360
   end
   return math.rad(ellRot)
-end
-
-function VelGen()
-  -- while this is a great random generator, it's 
-  --local newVel = {x=2, y=0.5}
-  local newVel = {x=0,y=0}
-  newVel.x = math.random(2, 4)
-  newVel.y = math.random(-1, 1)
-  return newVel
 end
 
 function Rounder(val)
@@ -95,6 +85,15 @@ function GravEf(sub, obj)
     wep.speedY += player.mass
     wep.y += wep.speedY
   end
+end
+
+-- well this was an interesting little experiment, util.approach would be used in place of a LERP when you want a non-linear interpolation.
+-- I should build some kind of display bar and try both methods to better understand how they operate
+function MovementTest(c, t, a, dt)
+  local curr = 1
+  local targ = 10
+  local accel = a * dt
+  print(util.approach(curr, targ, accel))
 end
 
 --gfx.text(text, x, y, color)
@@ -222,13 +221,15 @@ function ArrowMaker(d, w)
   table.insert(arrow, nA)
 end
 
-function BulletMaker(x, y, v)
+function BulletMaker(e, x, y, s)
+  local enemy = e
+  local spd = s
+  local angle = math.atan(y - enemy.y, x - enemy.x)
   local bullet = {
     x = x,
     y = y,
     r = 5,
-    --vel = {x = 2, y = -1},
-    vel = v,
+    vel = {x = math.cos(angle) * spd, y = math.sin(angle) * spd},
     colIn = gfx.COLOR_WHITE,
     colOut = gfx.COLOR_ORANGE,
     alive = true
@@ -236,17 +237,29 @@ function BulletMaker(x, y, v)
   table.insert(State.bullets, bullet)
 end
 
-function BulletMov(buls)
+function BulletMov(buls, dt)
   local bArr = buls
+  local dt = dt
   for i=#bArr, 1, -1 do
-    bArr[i].x = bArr[i].x - bArr[i].vel.x
-    bArr[i].y = bArr[i].y + bArr[i].vel.y
+    bArr[i].x -= bArr[i].vel.x * dt
+    bArr[i].y -= bArr[i].vel.y * dt
     if bArr[i].x < 0 - bArr[i].r or bArr[i].y < 0 - bArr[i].r or bArr[i].y > gameH + bArr[i].r then
       table.remove(bArr, i)
-      BulletMaker(gameW, centH, VelGen())
+      BulletMaker(State.shapes[1], gameW, centH, 150)
     end
   end
 end
+
+--function M.update(dt, b)
+  --if b.alive then
+    --b.t += dt
+    --b.x += b.vel.x * dt
+    --b.y += b.vel.y * dt
+    --if b.x > usagi.GAME_W or b.x + SPR_SIZE < 0 or b.y > usagi.GAME_H or b.y + SPR_SIZE < 0 then
+      --b.alive = false
+    --end
+  --end
+--end
 
 function WeaponTracker(ting)
   local wep = ting
@@ -322,7 +335,7 @@ function AntiMatter(x, y)
     color = ColourShift(0),
     alive = true
   }
-  table.insert(weapon, AMSprite)
+  table.insert(State.weapon, AMSprite)
 end
 
 function MakeStars(num)
@@ -449,10 +462,11 @@ end
 
 function _update(dt)
   Movement(dt)
-  BulletMov(State.bullets)
-  GravEf(weapon[1], State.shapes[1])
-  ArrowMaker(WeaponTracker(weapon[1]), weapon[1])
-  CollChk(State.shapes[1], weapon[1])
+  BulletMov(State.bullets, dt)
+  GravEf(State.weapon[1], State.shapes[1])
+  --MovementTest(State.weapon[1], State.shapes[1], 100, dt)
+  ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
+  CollChk(State.shapes[1], State.weapon[1])
   while #State.stars < starNum do
     MakeStars()
   end
@@ -465,7 +479,7 @@ function _update(dt)
   end
   State.shapes[1].rotVal = RotVal(dt, timeInt)
   State.shapes[1].flipVal = FlipNum(0.5)
-  weapon[1].color = ColourShift(colVal)
+  State.weapon[1].color = ColourShift(colVal)
 end 
 
 function _draw(dt)
@@ -481,8 +495,8 @@ function _draw(dt)
     gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r, State.bullets[i].colOut)
     gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r / 2, State.bullets[i].colIn)
   end
-  for i=1, #weapon do
-    gfx.circ_fill(weapon[i].x, weapon[i].y, weapon[i].r, weapon[1].color)
+  for i=1, #State.weapon do
+    gfx.circ_fill(State.weapon[i].x, State.weapon[i].y, State.weapon[i].r, State.weapon[1].color)
   end
   for i=1, #arrow do
     gfx.tri_fill(arrow[1].x1, arrow[1].y1, arrow[1].x2, arrow[1].y2, arrow[1].x3, arrow[1].y3, gfx.COLOR_WHITE)
