@@ -229,7 +229,9 @@ function BulletMaker(e, x, y, s)
     x = x,
     y = y,
     r = 5,
-    vel = {x = math.cos(angle) * spd, y = math.sin(angle) * spd},
+    --vel = {x = math.cos(angle) * spd, y = math.sin(angle) * spd},
+    -- well this is awfully handy
+    vel = util.vec_from_angle(angle, spd),
     colIn = gfx.COLOR_WHITE,
     colOut = gfx.COLOR_ORANGE,
     alive = true
