@@ -243,7 +243,7 @@ function BulletMov(buls, dt)
   for i=#bArr, 1, -1 do
     bArr[i].x -= bArr[i].vel.x * dt
     bArr[i].y -= bArr[i].vel.y * dt
-    if bArr[i].x < 0 - bArr[i].r or bArr[i].y < 0 - bArr[i].r or bArr[i].y > gameH + bArr[i].r then
+    if bArr[i].x < 0 - bArr[i].r or bArr[i].y < 0 - bArr[i].r or bArr[i].y > gameH + bArr[i].r or bArr[i].alive == false then
       table.remove(bArr, i)
       BulletMaker(State.shapes[1], gameW, centH, 150)
     end
@@ -448,15 +448,15 @@ end
 function CollChk(c1, c2)
   local mainC = c1
   local secC = c2
-  local result = util.circ_overlap(mainC, secC)
-  if result then
-    mainC.alive = false
-    secC.alive = false
-    -- removal of player / weapon is up next, then enemies, then enemy projectiles
-    --State.shapes = {}
-    return true
-  else
-    return false
+  local result
+  for i=1, #mainC do
+    for j=1, #secC do
+      result = util.circ_overlap(mainC[i], secC[j])
+      if result then
+        secC[i].alive = false
+        print("Aye matey")
+      end
+    end
   end
 end
 
@@ -466,7 +466,7 @@ function _update(dt)
   GravEf(State.weapon[1], State.shapes[1])
   --MovementTest(State.weapon[1], State.shapes[1], 100, dt)
   ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
-  CollChk(State.shapes[1], State.weapon[1])
+  CollChk(State.weapon, State.bullets)
   while #State.stars < starNum do
     MakeStars()
   end
