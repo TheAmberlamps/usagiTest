@@ -24,13 +24,15 @@ function _init()
     shapes = {},
     weapon = {},
     stars = {},
-    bullets = {}
+    bullets = {},
+    enemies = {}
   }
     while #State.stars < starNum do
       MakeStars(1)
     end
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
+  MakeShip(gameW, centH)
   BulletMaker(State.shapes[1], gameW, centH, 150)
 end
 
@@ -93,7 +95,7 @@ function MovementTest(c, t, a, dt)
   local curr = 1
   local targ = 10
   local accel = a * dt
-  print(util.approach(curr, targ, accel))
+  --print(util.approach(curr, targ, accel))
 end
 
 --gfx.text(text, x, y, color)
@@ -246,7 +248,7 @@ function BulletMov(buls, dt)
     bArr[i].x -= bArr[i].vel.x * dt
     bArr[i].y -= bArr[i].vel.y * dt
     if bArr[i].x < 0 - bArr[i].r or bArr[i].y < 0 - bArr[i].r or bArr[i].y > gameH + bArr[i].r or bArr[i].alive == false then
-      table.remove(bArr, i)
+      table.remove(buls, i)
       BulletMaker(State.shapes[1], gameW, centH, 150)
     end
   end
@@ -262,6 +264,14 @@ end
     --end
   --end
 --end
+
+function MakeShip(x, y)
+  local newShip = {
+    x = x,
+    y = y
+  }
+  table.insert(State.enemies, newShip)
+end
 
 function WeaponTracker(ting)
   local wep = ting
@@ -455,7 +465,7 @@ function CollChk(c1, c2)
     for j=1, #secC do
       result = util.circ_overlap(mainC[i], secC[j])
       if result then
-        secC[i].alive = false
+        secC[j].alive = false
         print("Aye matey")
       end
     end
@@ -469,6 +479,7 @@ function _update(dt)
   --MovementTest(State.weapon[1], State.shapes[1], 100, dt)
   ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
   CollChk(State.weapon, State.bullets)
+  CollChk(State.shapes, State.bullets)
   while #State.stars < starNum do
     MakeStars()
   end
@@ -487,7 +498,6 @@ end
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
   for i=1, #State.shapes do
-
     -- I know I can make this work
     --gfx.shapes[1].type(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
     gfx.sspr_ex(0, 0, 16, 16, State.shapes[1].x - State.shapes[1].flipVal, State.shapes[1].y - 16, State.shapes[1].flipVal * 2, 16 * 2 , false, false, State.shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
@@ -496,6 +506,9 @@ function _draw(dt)
   for i=1, #State.bullets do
     gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r, State.bullets[i].colOut)
     gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r / 2, State.bullets[i].colIn)
+  end
+  for i=1, #State.enemies do
+    gfx.sspr(16, 0, 16, 16, State.enemies[i].x - 16, State.enemies[i].y - 8)
   end
   for i=1, #State.weapon do
     gfx.circ_fill(State.weapon[i].x, State.weapon[i].y, State.weapon[i].r, State.weapon[1].color)
