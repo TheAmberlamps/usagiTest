@@ -3,6 +3,7 @@ function _config()
 end
 
 local timeInt = 1
+local baseMass = 1
 local colVal = 1
 local sprWid = 16
 local subVal = true
@@ -33,7 +34,7 @@ function _init()
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
   MakeShip(gameW, centH)
-  BulletMaker(State.shapes[1], gameW, centH, 150)
+  BulletMaker(State.shapes[1], gameW - 16, centH, 150)
 end
 
 function RotVal(dt, interval)
@@ -67,24 +68,24 @@ function FlipNum(interval)
   return sprWid
 end
 
-function GravEf(sub, obj)
+function GravEf(sub, obj, dt)
   local wep = sub
   local player = obj
   if wep.x > player.x then
-    wep.speedX -= player.mass
+    wep.speedX -= player.mass * dt
     wep.x += wep.speedX
   end
   if wep.x < player.x then
-    wep.speedX += player.mass
+    wep.speedX += player.mass * dt
     wep.x += wep.speedX
   end
   --print(wep.speedX)
   if wep.y > player.y then
-    wep.speedY -= player.mass
+    wep.speedY -= player.mass * dt
     wep.y += wep.speedY
   end
   if wep.y < player.y then
-    wep.speedY += player.mass
+    wep.speedY += player.mass * dt
     wep.y += wep.speedY
   end
 end
@@ -249,7 +250,7 @@ function BulletMov(buls, dt)
     bArr[i].y -= bArr[i].vel.y * dt
     if bArr[i].x < 0 - bArr[i].r or bArr[i].y < 0 - bArr[i].r or bArr[i].y > gameH + bArr[i].r or bArr[i].alive == false then
       table.remove(buls, i)
-      BulletMaker(State.shapes[1], gameW, centH, 150)
+      BulletMaker(State.shapes[1], gameW - 16, centH, 150)
     end
   end
 end
@@ -268,7 +269,8 @@ end
 function MakeShip(x, y)
   local newShip = {
     x = x,
-    y = y
+    y = y,
+    rotVal = 0
   }
   table.insert(State.enemies, newShip)
 end
@@ -325,7 +327,7 @@ function DrawingTing(typeInput)
     y = centH,
     r = 5,
     type = typeInput,
-    mass = 0.1,
+    mass = baseMass,
     speedX = 0,
     speedY = 0,
     movX = false,
@@ -362,7 +364,7 @@ function MakeStars(num)
   table.insert(State.stars, star)
 end
 
-function Movement(dt)
+function Input(dt)
   if input.pressed(input.UP) or input.held(input.UP) then
     State.shapes[1].movY = true
     State.shapes[1].speedY -= accel - dt
@@ -406,6 +408,16 @@ function Movement(dt)
   end
   if input.released(input.RIGHT) then
     State.shapes[1].movX = false
+  end
+  if input.held(input.BTN1) then
+    if State.shapes[1].mass == baseMass then
+      State.shapes[1].mass = State.shapes[1].mass * 2
+    end
+  end
+  if input.released(input.BTN1) then
+    if State.shapes[1].mass > baseMass then
+      State.shapes[1].mass = baseMass
+    end
   end
   if State.shapes[1].movX == false then 
     if State.shapes[1].speedX > 0 then
@@ -473,9 +485,9 @@ function CollChk(c1, c2)
 end
 
 function _update(dt)
-  Movement(dt)
+  Input(dt)
   BulletMov(State.bullets, dt)
-  GravEf(State.weapon[1], State.shapes[1])
+  GravEf(State.weapon[1], State.shapes[1], dt)
   --MovementTest(State.weapon[1], State.shapes[1], 100, dt)
   ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
   CollChk(State.weapon, State.bullets)
@@ -497,6 +509,9 @@ end
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
+  for i=1, #State.stars do
+    gfx.px(State.stars[i].tingX, State.stars[i].tingY, gfx.COLOR_WHITE)
+  end
   for i=1, #State.shapes do
     -- I know I can make this work
     --gfx.shapes[1].type(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
@@ -508,7 +523,9 @@ function _draw(dt)
     gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r / 2, State.bullets[i].colIn)
   end
   for i=1, #State.enemies do
-    gfx.sspr(16, 0, 16, 16, State.enemies[i].x - 16, State.enemies[i].y - 8)
+    local newAngle = math.atan(State.enemies[i].y - State.shapes[1].y, State.enemies[i].x - State.shapes[i].x)
+    --print(newAngle)
+    gfx.sspr_ex(16, 0, 16, 16, State.enemies[i].x - 32, State.enemies[i].y - 16, 16 * 2, 16 * 2, false, false, newAngle, gfx.COLOR_TRUE_WHITE, 1.0)
   end
   for i=1, #State.weapon do
     gfx.circ_fill(State.weapon[i].x, State.weapon[i].y, State.weapon[i].r, State.weapon[1].color)
@@ -518,8 +535,5 @@ function _draw(dt)
     gfx.text(arrow[1].dText, arrow[1].tX, arrow[1].tY, gfx.COLOR_RED)
     -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
     -- leave drawing for the draw loop and updates for the update loop; update data then draw it
-  end
-  for i=1, #State.stars do
-    gfx.px(State.stars[i].tingX, State.stars[i].tingY, gfx.COLOR_WHITE)
   end
 end
