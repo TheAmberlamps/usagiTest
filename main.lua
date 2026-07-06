@@ -37,12 +37,14 @@ function _init()
   BulletMaker(State.shapes[1], gameW - 16, centH, 150)
 end
 
+-- OK trying a little animation trick here; let's supply the raw value in degrees and only convert it to radians when needed
+-- Alternatively I suppose I could store both potentials, but first things first
 function RotVal(dt, interval)
   ellRot += dt + interval
   if ellRot >= 360 then
     ellRot = ellRot - 360
   end
-  return math.rad(ellRot)
+  return ellRot
 end
 
 function Rounder(val)
@@ -344,6 +346,7 @@ function AntiMatter(x, y)
     x = x,
     y = y,
     r = 2.5,
+    mass = 12,
     speedX = 0,
     speedY = 0,
     color = ColourShift(0),
@@ -515,7 +518,12 @@ function _draw(dt)
   for i=1, #State.shapes do
     -- I know I can make this work
     --gfx.shapes[1].type(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
-    gfx.sspr_ex(0, 0, 16, 16, State.shapes[1].x - State.shapes[1].flipVal, State.shapes[1].y - 16, State.shapes[1].flipVal * 2, 16 * 2 , false, false, State.shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
+    if input.held(input.BTN1) then
+      gfx.sspr_ex(0, 0, 16, 16, State.shapes[1].x - State.shapes[1].flipVal, State.shapes[1].y - 16, State.shapes[1].flipVal * 2, 16 * 2 , false, false, math.rad(State.shapes[1].rotVal) * 4, gfx.COLOR_WHITE, 1.0)
+      gfx.sspr_ex(0, 0, 16, 16, State.shapes[1].x - State.shapes[1].flipVal, State.shapes[1].y - 16, State.shapes[1].flipVal * 2, 16 * 2 , false, false, State.shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
+    else
+      gfx.sspr_ex(0, 0, 16, 16, State.shapes[1].x - State.shapes[1].flipVal, State.shapes[1].y - 16, State.shapes[1].flipVal * 2, 16 * 2 , false, false, math.rad(State.shapes[1].rotVal), gfx.COLOR_WHITE, 1.0)
+    end
     gfx.circ_fill(State.shapes[1].x, State.shapes[1].y, State.shapes[1].r, gfx.COLOR_WHITE)
   end
   for i=1, #State.bullets do
