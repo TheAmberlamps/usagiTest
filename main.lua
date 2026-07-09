@@ -488,6 +488,7 @@ function CollChk(c1, c2)
         result = util.circ_overlap(mainC[i], secC[j])
       end
       if mainC[i].type == 'circ' and secC[j].type == 'spr' then
+        -- necessary to create a new table so as to not modify the original... may want to wrap this into its own function, but if this is the only place this code is used that seems like a waste of time.
         local newTab = {x=0,y=0,w=secC[j].w,h=secC[j].h}
         newTab.x = secC[j].x - newTab.w
         newTab.y = secC[j].y - newTab.h
