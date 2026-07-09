@@ -3,7 +3,7 @@ function _config()
 end
 
 local timeInt = 1
-local baseMass = 1
+local baseMass = 2
 local colVal = 1
 local sprWid = 16
 local subVal = true
@@ -33,7 +33,7 @@ function _init()
     end
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
-  MakeShip(gameW, centH)
+  MakeShip(gameW, centH, sprWid * 2, sprWid * 2)
   BulletMaker(State.shapes[1], gameW - 16, centH, 150)
 end
 
@@ -74,20 +74,20 @@ function GravEf(sub, obj, dt)
   local wep = sub
   local player = obj
   if wep.x > player.x then
-    wep.speedX -= player.mass * dt
+    wep.speedX -= wep.mass * dt
     wep.x += wep.speedX
   end
   if wep.x < player.x then
-    wep.speedX += player.mass * dt
+    wep.speedX += wep.mass * dt
     wep.x += wep.speedX
   end
   --print(wep.speedX)
   if wep.y > player.y then
-    wep.speedY -= player.mass * dt
+    wep.speedY -= wep.mass * dt
     wep.y += wep.speedY
   end
   if wep.y < player.y then
-    wep.speedY += player.mass * dt
+    wep.speedY += wep.mass * dt
     wep.y += wep.speedY
   end
 end
@@ -239,6 +239,7 @@ function BulletMaker(e, x, y, s)
     vel = util.vec_from_angle(angle, spd),
     colIn = gfx.COLOR_WHITE,
     colOut = gfx.COLOR_ORANGE,
+    type = "circ",
     alive = true
   }
   table.insert(State.bullets, bullet)
@@ -268,11 +269,15 @@ end
   --end
 --end
 
-function MakeShip(x, y)
+function MakeShip(x, y, w, h)
   local newShip = {
     x = x,
     y = y,
-    rotVal = 0
+    w = w,
+    h = h,
+    rotVal = 0,
+    type = 'spr',
+    alive = true
   }
   table.insert(State.enemies, newShip)
 end
@@ -346,7 +351,8 @@ function AntiMatter(x, y)
     x = x,
     y = y,
     r = 2.5,
-    mass = 12,
+    mass = baseMass,
+    type = 'circ',
     speedX = 0,
     speedY = 0,
     color = ColourShift(0),
@@ -413,13 +419,13 @@ function Input(dt)
     State.shapes[1].movX = false
   end
   if input.held(input.BTN1) then
-    if State.shapes[1].mass == baseMass then
-      State.shapes[1].mass = State.shapes[1].mass * 2
+    if State.weapon[1].mass == baseMass then
+      State.weapon[1].mass = State.weapon[1].mass * 3
     end
   end
   if input.released(input.BTN1) then
-    if State.shapes[1].mass > baseMass then
-      State.shapes[1].mass = baseMass
+    if State.weapon[1].mass > baseMass then
+      State.weapon[1].mass = baseMass
     end
   end
   if State.shapes[1].movX == false then 
@@ -478,13 +484,28 @@ function CollChk(c1, c2)
   local result
   for i=1, #mainC do
     for j=1, #secC do
-      result = util.circ_overlap(mainC[i], secC[j])
+      if mainC[i].type == 'circ' and secC[j].type == 'circ' then
+        result = util.circ_overlap(mainC[i], secC[j])
+      end
+      if mainC[i].type == 'circ' and secC[j].type == 'spr' then
+        --SpriteColl(secC[j])
+        result = util.circ_rect_overlap(mainC[i], secC[j])
+      end
       if result then
         secC[j].alive = false
-        print("Aye matey")
+        --print("Aye matey")
       end
     end
   end
+end
+
+function Removals(a)
+  local arr = a
+  for i=#arr, 1, -1 do
+    if arr[i].alive == false then
+      table.remove(arr, i)
+    end
+  end 
 end
 
 function _update(dt)
@@ -494,7 +515,9 @@ function _update(dt)
   --MovementTest(State.weapon[1], State.shapes[1], 100, dt)
   ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
   CollChk(State.weapon, State.bullets)
-  CollChk(State.shapes, State.bullets)
+  --CollChk(State.bullets, State.shapes)
+  --CollChk(State.weapon, State.shapes)
+  CollChk(State.weapon, State.enemies)
   while #State.stars < starNum do
     MakeStars()
   end
@@ -508,7 +531,8 @@ function _update(dt)
   State.shapes[1].rotVal = RotVal(dt, timeInt)
   State.shapes[1].flipVal = FlipNum(0.5)
   State.weapon[1].color = ColourShift(colVal)
-end 
+  Removals(State.enemies)
+end
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
@@ -531,9 +555,9 @@ function _draw(dt)
     gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r / 2, State.bullets[i].colIn)
   end
   for i=1, #State.enemies do
-    local newAngle = math.atan(State.enemies[i].y - State.shapes[1].y, State.enemies[i].x - State.shapes[i].x)
+    State.enemies[i].rotVal = math.atan(State.enemies[i].y - State.shapes[1].y, State.enemies[i].x - State.shapes[i].x)
     --print(newAngle)
-    gfx.sspr_ex(16, 0, 16, 16, State.enemies[i].x - 32, State.enemies[i].y - 16, 16 * 2, 16 * 2, false, false, newAngle, gfx.COLOR_TRUE_WHITE, 1.0)
+    gfx.sspr_ex(16, 0, 16, 16, State.enemies[i].x - 32, State.enemies[i].y - 16, 16 * 2, 16 * 2, false, false, State.enemies[i].rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
   end
   for i=1, #State.weapon do
     gfx.circ_fill(State.weapon[i].x, State.weapon[i].y, State.weapon[i].r, State.weapon[1].color)
