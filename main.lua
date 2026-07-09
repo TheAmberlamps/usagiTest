@@ -488,8 +488,10 @@ function CollChk(c1, c2)
         result = util.circ_overlap(mainC[i], secC[j])
       end
       if mainC[i].type == 'circ' and secC[j].type == 'spr' then
-        --SpriteColl(secC[j])
-        result = util.circ_rect_overlap(mainC[i], secC[j])
+        local newTab = {x=0,y=0,w=secC[j].w,h=secC[j].h}
+        newTab.x = secC[j].x - newTab.w
+        newTab.y = secC[j].y - newTab.h
+        result = util.circ_rect_overlap(mainC[i], newTab)
       end
       if result then
         secC[j].alive = false
