@@ -8,6 +8,7 @@ local colVal = 1
 local sprWid = 16
 local subVal = true
 local accel = 0.25
+local gameTime = 0
 local gameW = usagi.GAME_W
 local gameH = usagi.GAME_H
 local centW = usagi.GAME_W / 2
@@ -524,6 +525,7 @@ function PlayerCol(e)
   end
   if result then
     State.player.alive = false
+    effect.hitstop(1)
   end
 end
 
@@ -541,6 +543,7 @@ function Removals(a)
 end
 
 function _update(dt)
+  gameTime += dt
   Input(dt)
   BulletMov(State.bullets, dt)
   GravEf(State.weapon[1], State.player, dt)
@@ -572,6 +575,7 @@ end
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
+  gfx.text(math.floor(gameTime) ..'s', centW, gameH - 20, gfx.COLOR_WHITE)
   for i=1, #State.stars do
     gfx.px(State.stars[i].tingX, State.stars[i].tingY, gfx.COLOR_WHITE)
   end
