@@ -22,7 +22,7 @@ function _init()
   -- survives reloads; F5 calls _init again to reset.
   State = {
     timer = 0,
-    shapes = {},
+    player = nil,
     weapon = {},
     stars = {},
     bullets = {},
@@ -34,7 +34,7 @@ function _init()
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
   MakeShip(gameW, centH, sprWid * 2, sprWid * 2)
-  BulletMaker(State.shapes[1], gameW - 16, centH, 150)
+  BulletMaker(State.player, gameW - 16, centH, 150)
 end
 
 -- OK trying a little animation trick here; let's supply the raw value in degrees and only convert it to radians when needed
@@ -73,21 +73,26 @@ end
 function GravEf(sub, obj, dt)
   local wep = sub
   local player = obj
-  if wep.x > player.x then
-    wep.speedX -= wep.mass * dt
+  if player then
+    if wep.x > player.x then
+      wep.speedX -= wep.mass * dt
+      wep.x += wep.speedX
+    end
+    if wep.x < player.x then
+      wep.speedX += wep.mass * dt
+      wep.x += wep.speedX
+    end
+    --print(wep.speedX)
+    if wep.y > player.y then
+      wep.speedY -= wep.mass * dt
+      wep.y += wep.speedY
+    end
+    if wep.y < player.y then
+      wep.speedY += wep.mass * dt
+      wep.y += wep.speedY
+    end
+  else
     wep.x += wep.speedX
-  end
-  if wep.x < player.x then
-    wep.speedX += wep.mass * dt
-    wep.x += wep.speedX
-  end
-  --print(wep.speedX)
-  if wep.y > player.y then
-    wep.speedY -= wep.mass * dt
-    wep.y += wep.speedY
-  end
-  if wep.y < player.y then
-    wep.speedY += wep.mass * dt
     wep.y += wep.speedY
   end
 end
@@ -228,6 +233,9 @@ end
 
 function BulletMaker(e, x, y, s)
   local enemy = e
+  if enemy == false then
+    return
+  end
   local spd = s
   local angle = math.atan(y - enemy.y, x - enemy.x)
   local bullet = {
@@ -253,7 +261,9 @@ function BulletMov(buls, dt)
     bArr[i].y -= bArr[i].vel.y * dt
     if bArr[i].x < 0 - bArr[i].r or bArr[i].y < 0 - bArr[i].r or bArr[i].y > gameH + bArr[i].r or bArr[i].alive == false then
       table.remove(buls, i)
-      BulletMaker(State.shapes[1], gameW - 16, centH, 150)
+      if State.player then
+        BulletMaker(State.player, gameW - 16, centH, 150)
+      end
     end
   end
 end
@@ -334,6 +344,7 @@ function DrawingTing(typeInput)
     y = centH,
     r = 5,
     type = typeInput,
+    name = 'player',
     mass = baseMass,
     speedX = 0,
     speedY = 0,
@@ -343,7 +354,8 @@ function DrawingTing(typeInput)
     rotVal = 0,
     alive = true
   }
-  table.insert(State.shapes, newTing)
+  State.player = newTing
+  --table.insert(State.player, newTing)
 end
 
 function AntiMatter(x, y)
@@ -374,49 +386,50 @@ function MakeStars(num)
 end
 
 function Input(dt)
+  if State.player then
   if input.pressed(input.UP) or input.held(input.UP) then
-    State.shapes[1].movY = true
-    State.shapes[1].speedY -= accel - dt
-    if State.shapes[1].speedY < -10 then
-      State.shapes[1].speedY = -10
+    State.player.movY = true
+    State.player.speedY -= accel - dt
+    if State.player.speedY < -10 then
+      State.player.speedY = -10
     end
-    State.shapes[1].y += State.shapes[1].speedY
+    State.player.y += State.player.speedY
   end
   if input.released(input.UP) then
-    State.shapes[1].movY = false
+    State.player.movY = false
   end
   if input.pressed(input.DOWN) or input.held(input.DOWN) then
-    State.shapes[1].movY = true
-    State.shapes[1].speedY += accel + dt
-    if State.shapes[1].speedY > 10 then
-      State.shapes[1].speedY = 10
+    State.player.movY = true
+    State.player.speedY += accel + dt
+    if State.player.speedY > 10 then
+      State.player.speedY = 10
     end
-    State.shapes[1].y += State.shapes[1].speedY
+    State.player.y += State.player.speedY
   end
   if input.released(input.DOWN) then
-    State.shapes[1].movY = false
+    State.player.movY = false
   end
   if input.pressed(input.LEFT) or input.held(input.LEFT) then
-    State.shapes[1].movX = true
-    State.shapes[1].speedX -= accel - dt
-    if State.shapes[1].speedX < -10 then
-      State.shapes[1].speedX = -10
+    State.player.movX = true
+    State.player.speedX -= accel - dt
+    if State.player.speedX < -10 then
+      State.player.speedX = -10
     end
-    State.shapes[1].x += State.shapes[1].speedX
+    State.player.x += State.player.speedX
   end
   if input.released(input.LEFT) then
-    State.shapes[1].movX = false
+    State.player.movX = false
   end
   if input.pressed(input.RIGHT) or input.held(input.RIGHT) then
-    State.shapes[1].movX = true
-    State.shapes[1].speedX += accel + dt
-    if State.shapes[1].speedX > 10 then
-      State.shapes[1].speedX = 10
+    State.player.movX = true
+    State.player.speedX += accel + dt
+    if State.player.speedX > 10 then
+      State.player.speedX = 10
     end
-    State.shapes[1].x += State.shapes[1].speedX
+    State.player.x += State.player.speedX
   end
   if input.released(input.RIGHT) then
-    State.shapes[1].movX = false
+    State.player.movX = false
   end
   if input.held(input.BTN1) then
     if State.weapon[1].mass == baseMass then
@@ -428,53 +441,52 @@ function Input(dt)
       State.weapon[1].mass = baseMass
     end
   end
-  if State.shapes[1].movX == false then 
-    if State.shapes[1].speedX > 0 then
-      State.shapes[1].speedX -= accel
-      if State.shapes[1].speedX < 0 then
-        State.shapes[1].speedX = 0
+    if State.player.movX == false then 
+      if State.player.speedX > 0 then
+      State.player.speedX -= accel
+      if State.player.speedX < 0 then
+        State.player.speedX = 0
       end
-    else if State.shapes[1].speedX < 0 then
-      State.shapes[1].speedX += accel
-      if State.shapes[1].speedX > 0 then
-        State.shapes[1].speedX = 0
-      end
-    end
-    end
-    State.shapes[1].x += State.shapes[1].speedX
-  end
-  if State.shapes[1].x - State.shapes[1].r <= 0 then
-    State.shapes[1].x = 0 + State.shapes[1].r
-    State.shapes[1].speedX = -State.shapes[1].speedX
-
-  end
-  if State.shapes[1].x + State.shapes[1].r >= usagi.GAME_W then
-    State.shapes[1].x = usagi.GAME_W - State.shapes[1].r
-    State.shapes[1].speedX = -State.shapes[1].speedX
-  end
-  if State.shapes[1].movY == false then 
-    if State.shapes[1].speedY > 0 then
-      State.shapes[1].speedY -= accel
-      if State.shapes[1].speedY < 0 then
-        State.shapes[1].speedY = 0
-      end
-    else if State.shapes[1].speedY < 0 then
-      State.shapes[1].speedY += accel
-      if State.shapes[1].speedY > 0 then
-        State.shapes[1].speedY = 0
+    else if State.player.speedX < 0 then
+      State.player.speedX += accel
+      if State.player.speedX > 0 then
+        State.player.speedX = 0
       end
     end
     end
-    State.shapes[1].y += State.shapes[1].speedY
-  end
-  if State.shapes[1].y - State.shapes[1].r <= 0 then
-    State.shapes[1].y = 0 + State.shapes[1].r
-    State.shapes[1].speedY = -State.shapes[1].speedY
-
-  end
-  if State.shapes[1].y + State.shapes[1].r >= usagi.GAME_H then
-    State.shapes[1].y = usagi.GAME_H - State.shapes[1].r
-    State.shapes[1].speedY = -State.shapes[1].speedY
+    State.player.x += State.player.speedX
+    end
+    if State.player.x - State.player.r <= 0 then
+      State.player.x = 0 + State.player.r
+      State.player.speedX = -State.player.speedX
+    end
+    if State.player.x + State.player.r >= usagi.GAME_W then
+      State.player.x = usagi.GAME_W - State.player.r
+      State.player.speedX = -State.player.speedX
+    end
+    if State.player.movY == false then 
+      if State.player.speedY > 0 then
+        State.player.speedY -= accel
+        if State.player.speedY < 0 then
+          State.player.speedY = 0
+        end
+      else if State.player.speedY < 0 then
+        State.player.speedY += accel
+        if State.player.speedY > 0 then
+          State.player.speedY = 0
+        end
+      end
+      end
+      State.player.y += State.player.speedY
+    end
+    if State.player.y - State.player.r <= 0 then
+      State.player.y = 0 + State.player.r
+      State.player.speedY = -State.player.speedY
+    end
+    if State.player.y + State.player.r >= usagi.GAME_H then
+      State.player.y = usagi.GAME_H - State.player.r
+      State.player.speedY = -State.player.speedY
+    end
   end
 end
 
@@ -502,8 +514,25 @@ function CollChk(c1, c2)
   end
 end
 
+function PlayerCol(e)
+  local enArr = e
+  local result
+  for i=1, #enArr do
+    if enArr[i].type == 'circ' then
+      result = util.circ_overlap(enArr[i], State.player)
+    end
+  end
+  if result then
+    State.player.alive = false
+  end
+end
+
 function Removals(a)
   local arr = a
+  if arr == State.player and State.player.alive == false then
+    State.player = nil
+    return
+  end
   for i=#arr, 1, -1 do
     if arr[i].alive == false then
       table.remove(arr, i)
@@ -514,13 +543,19 @@ end
 function _update(dt)
   Input(dt)
   BulletMov(State.bullets, dt)
-  GravEf(State.weapon[1], State.shapes[1], dt)
-  --MovementTest(State.weapon[1], State.shapes[1], 100, dt)
+  GravEf(State.weapon[1], State.player, dt)
+  --MovementTest(State.weapon[1], State.player, 100, dt)
   ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
   CollChk(State.weapon, State.bullets)
-  --CollChk(State.bullets, State.shapes)
-  --CollChk(State.weapon, State.shapes)
+  --CollChk(State.bullets, State.player)
+  --CollChk(State.weapon, State.player)
   CollChk(State.weapon, State.enemies)
+  if State.player then
+    PlayerCol(State.weapon)
+    State.player.rotVal = RotVal(dt, timeInt)
+    State.player.flipVal = FlipNum(0.5)
+    Removals(State.player)
+  end
   while #State.stars < starNum do
     MakeStars()
   end
@@ -531,8 +566,6 @@ function _update(dt)
       State.stars[i].tingX -= State.stars[i].speed
     end
   end
-  State.shapes[1].rotVal = RotVal(dt, timeInt)
-  State.shapes[1].flipVal = FlipNum(0.5)
   State.weapon[1].color = ColourShift(colVal)
   Removals(State.enemies)
 end
@@ -542,23 +575,25 @@ function _draw(dt)
   for i=1, #State.stars do
     gfx.px(State.stars[i].tingX, State.stars[i].tingY, gfx.COLOR_WHITE)
   end
-  for i=1, #State.shapes do
+  if State.player then
     -- I know I can make this work
-    --gfx.shapes[1].type(shapes[1].tingX, shapes[1].tingY, radius, gfx.COLOR_GREEN)
+    --gfx.player.type(player.tingX, player.tingY, radius, gfx.COLOR_GREEN)
     if input.held(input.BTN1) then
-      gfx.sspr_ex(0, 0, 16, 16, State.shapes[1].x - State.shapes[1].flipVal, State.shapes[1].y - 16, State.shapes[1].flipVal * 2, 16 * 2 , false, false, math.rad(State.shapes[1].rotVal) * 4, gfx.COLOR_WHITE, 1.0)
-      gfx.sspr_ex(0, 0, 16, 16, State.shapes[1].x - State.shapes[1].flipVal, State.shapes[1].y - 16, State.shapes[1].flipVal * 2, 16 * 2 , false, false, State.shapes[1].rotVal, gfx.COLOR_WHITE, 1.0)
+      gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, math.rad(State.player.rotVal) * 4, gfx.COLOR_WHITE, 1.0)
+      gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, State.player.rotVal, gfx.COLOR_WHITE, 1.0)
     else
-      gfx.sspr_ex(0, 0, 16, 16, State.shapes[1].x - State.shapes[1].flipVal, State.shapes[1].y - 16, State.shapes[1].flipVal * 2, 16 * 2 , false, false, math.rad(State.shapes[1].rotVal), gfx.COLOR_WHITE, 1.0)
+      gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, math.rad(State.player.rotVal), gfx.COLOR_WHITE, 1.0)
     end
-    gfx.circ_fill(State.shapes[1].x, State.shapes[1].y, State.shapes[1].r, gfx.COLOR_WHITE)
+    gfx.circ_fill(State.player.x, State.player.y, State.player.r, gfx.COLOR_WHITE)
   end
   for i=1, #State.bullets do
     gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r, State.bullets[i].colOut)
     gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r / 2, State.bullets[i].colIn)
   end
   for i=1, #State.enemies do
-    State.enemies[i].rotVal = math.atan(State.enemies[i].y - State.shapes[1].y, State.enemies[i].x - State.shapes[i].x)
+    if State.player then
+      State.enemies[i].rotVal = math.atan(State.enemies[i].y - State.player.y, State.enemies[i].x - State.player.x)
+    end
     --print(newAngle)
     gfx.sspr_ex(16, 0, 16, 16, State.enemies[i].x - 32, State.enemies[i].y - 16, 16 * 2, 16 * 2, false, false, State.enemies[i].rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
   end
