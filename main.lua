@@ -3,6 +3,7 @@ function _config()
 end
 
 local timeInt = 1
+local usagiElapsed = 0
 local baseMass = 2
 local colVal = 1
 local sprWid = 16
@@ -22,12 +23,12 @@ function _init()
   -- Stash mutable game state in a capitalized global like `State` so it
   -- survives reloads; F5 calls _init again to reset.
   State = {
-    timer = 0,
+    time = 0,
     player = nil,
     weapon = {},
     stars = {},
     bullets = {},
-    enemies = {}
+    enemies = {},
   }
     while #State.stars < starNum do
       MakeStars(1)
@@ -518,6 +519,7 @@ end
 function PlayerCol(e)
   local enArr = e
   local result
+  State.time = usagi.elapsed
   for i=1, #enArr do
     if enArr[i].type == 'circ' then
       result = util.circ_overlap(enArr[i], State.player)
@@ -526,6 +528,7 @@ function PlayerCol(e)
   if result then
     State.player.alive = false
     effect.hitstop(1)
+    return true
   end
 end
 
@@ -540,6 +543,17 @@ function Removals(a)
       table.remove(arr, i)
     end
   end 
+end
+
+function TimeTrick(t)
+  local time = t
+  print(time)
+  if usagi.elapsed < time + 1 then
+    return
+  else
+    effect.screen_shake(1, 2)
+    State.time = usagi.elapsed
+  end
 end
 
 function _update(dt)
@@ -559,6 +573,7 @@ function _update(dt)
     State.player.flipVal = FlipNum(0.5)
     Removals(State.player)
   end
+  TimeTrick(State.time)
   while #State.stars < starNum do
     MakeStars()
   end
@@ -575,6 +590,7 @@ end
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
+  gfx.text(math.floor(usagi.elapsed) .. 's', centW, gameH - 40, gfx.COLOR_WHITE)
   gfx.text(math.floor(gameTime) ..'s', centW, gameH - 20, gfx.COLOR_WHITE)
   for i=1, #State.stars do
     gfx.px(State.stars[i].tingX, State.stars[i].tingY, gfx.COLOR_WHITE)
