@@ -3,7 +3,7 @@ function _config()
 end
 
 local timeInt = 1
-local usagiElapsed = 0
+local fxTim = true
 local baseMass = 2
 local colVal = 1
 local sprWid = 16
@@ -253,6 +253,7 @@ function BulletMaker(e, x, y, s)
     alive = true
   }
   table.insert(State.bullets, bullet)
+  --sfx.play('laserShoot')
 end
 
 function BulletMov(buls, dt)
@@ -261,8 +262,15 @@ function BulletMov(buls, dt)
   for i=#bArr, 1, -1 do
     bArr[i].x -= bArr[i].vel.x * dt
     bArr[i].y -= bArr[i].vel.y * dt
-    if bArr[i].x < 0 - bArr[i].r or bArr[i].y < 0 - bArr[i].r or bArr[i].y > gameH + bArr[i].r or bArr[i].alive == false then
+    if bArr[i].x < 0 - bArr[i].r or bArr[i].y < 0 - bArr[i].r or bArr[i].y > gameH + bArr[i].r then
       table.remove(buls, i)
+      -- this below will need to be overhauled
+      if State.player then
+        BulletMaker(State.player, gameW - 16, centH, 150)
+      end
+    elseif bArr[i].alive == false then
+      table.remove(buls, i)
+      sfx.play("bullHit")
       if State.player then
         BulletMaker(State.player, gameW - 16, centH, 150)
       end
@@ -354,6 +362,7 @@ function DrawingTing(typeInput)
     movY = false,
     flipVal = sprWid,
     rotVal = 0,
+    alpha = 0,
     alive = true
   }
   State.player = newTing
@@ -509,6 +518,10 @@ function CollChk(c1, c2)
         result = util.circ_rect_overlap(mainC[i], newTab)
       end
       if result then
+        if secC[j].type == 'spr' then
+          sfx.play('shipEx')
+          --effect.screen_shake(1, 1)
+        end
         secC[j].alive = false
         --print("Aye matey")
       end
@@ -528,6 +541,7 @@ function PlayerCol(e)
   if result then
     State.player.alive = false
     effect.hitstop(1)
+    sfx.play("hit")
     return true
   end
 end
@@ -547,13 +561,33 @@ end
 
 function TimeTrick(t)
   local time = t
-  print(time)
-  if usagi.elapsed < time + 1 then
-    return
-  else
-    effect.screen_shake(1, 2)
-    State.time = usagi.elapsed
+  if fxTim then
+    if time + 1 > usagi.elapsed then
+      return
+    else
+      effect.screen_shake(1, 2)
+      --sfx.play("hitBlast")
+      sfx.play("explosion")
+      fxTim = false
+    end
   end
+end
+
+function AlphaShift(dt)
+  local al = State.player.alpha
+  if input.held(input.BTN1) then
+    al += dt
+    if al > 1 then
+      al = 1
+    end
+  else
+    al -= dt
+    if al < 0 then
+      al = 0
+    end
+  end
+  State.player.alpha = al
+  return al
 end
 
 function _update(dt)
@@ -569,6 +603,7 @@ function _update(dt)
   CollChk(State.weapon, State.enemies)
   if State.player then
     PlayerCol(State.weapon)
+    PlayerCol(State.bullets)
     State.player.rotVal = RotVal(dt, timeInt)
     State.player.flipVal = FlipNum(0.5)
     Removals(State.player)
@@ -598,13 +633,9 @@ function _draw(dt)
   if State.player then
     -- I know I can make this work
     --gfx.player.type(player.tingX, player.tingY, radius, gfx.COLOR_GREEN)
-    if input.held(input.BTN1) then
-      gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, math.rad(State.player.rotVal) * 4, gfx.COLOR_WHITE, 1.0)
-      gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, State.player.rotVal, gfx.COLOR_WHITE, 1.0)
-    else
-      gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, math.rad(State.player.rotVal), gfx.COLOR_WHITE, 1.0)
-    end
     gfx.circ_fill(State.player.x, State.player.y, State.player.r, gfx.COLOR_WHITE)
+    gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, math.rad(State.player.rotVal), gfx.COLOR_WHITE, 1.0)
+    gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, State.player.rotVal, gfx.COLOR_WHITE, AlphaShift(dt))
   end
   for i=1, #State.bullets do
     gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r, State.bullets[i].colOut)
