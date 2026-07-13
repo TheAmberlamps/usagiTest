@@ -37,6 +37,7 @@ function _init()
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
   MakeShip(gameW, centH, sprWid * 2, sprWid * 2)
   BulletMaker(State.player, gameW - 16, centH, 150)
+  music.loop('RainPixLoFi')
 end
 
 -- OK trying a little animation trick here; let's supply the raw value in degrees and only convert it to radians when needed
@@ -581,7 +582,7 @@ function AlphaShift(dt)
       al = 1
     end
   else
-    al -= dt
+    al -= dt * 2
     if al < 0 then
       al = 0
     end
