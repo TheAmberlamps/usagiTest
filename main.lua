@@ -36,9 +36,9 @@ function _init()
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
   MakeShip(gameW, centH, sprWid * 2, sprWid * 2)
-  MakeShip(0, centH, sprWid * 2, sprWid * 2)
-  MakeShip(centW, 0, sprWid * 2, sprWid * 2)
-  MakeShip(centW, gameH, sprWid * 2, sprWid * 2)
+  --MakeShip(0, centH, sprWid * 2, sprWid * 2)
+  --MakeShip(centW, 0, sprWid * 2, sprWid * 2)
+  --MakeShip(centW, gameH, sprWid * 2, sprWid * 2)
   --BulletMaker(State.player, gameW - 16, centH, 150)
   music.loop('RainPixLoFi')
 end
@@ -257,7 +257,7 @@ function BulletMaker(e, x, y, s)
     alive = true
   }
   table.insert(State.bullets, bullet)
-  --sfx.play('laserShoot')
+  sfx.play('laserShoot')
 end
 
 function BulletMov(buls, dt)
@@ -312,7 +312,7 @@ function Shooter(e)
   for i=1, #ens do
     if usagi.elapsed >= ens[i].shotT + 1 and State.player then
       BulletMaker(State.player, ens[i].x, ens[i].y, 150)
-      ens[i].shotT = usagi.elapsed
+      ens[i].shotT = usagi.elapsed + math.random(3)
     end
   end
 end
