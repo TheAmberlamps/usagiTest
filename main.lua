@@ -36,7 +36,10 @@ function _init()
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
   MakeShip(gameW, centH, sprWid * 2, sprWid * 2)
-  BulletMaker(State.player, gameW - 16, centH, 150)
+  MakeShip(0, centH, sprWid * 2, sprWid * 2)
+  MakeShip(centW, 0, sprWid * 2, sprWid * 2)
+  MakeShip(centW, gameH, sprWid * 2, sprWid * 2)
+  --BulletMaker(State.player, gameW - 16, centH, 150)
   music.loop('RainPixLoFi')
 end
 
@@ -267,13 +270,13 @@ function BulletMov(buls, dt)
       table.remove(buls, i)
       -- this below will need to be overhauled
       if State.player then
-        BulletMaker(State.player, gameW - 16, centH, 150)
+        --BulletMaker(State.player, gameW - 16, centH, 150)
       end
     elseif bArr[i].alive == false then
       table.remove(buls, i)
       sfx.play("bullHit")
       if State.player then
-        BulletMaker(State.player, gameW - 16, centH, 150)
+        --BulletMaker(State.player, gameW - 16, centH, 150)
       end
     end
   end
@@ -298,9 +301,20 @@ function MakeShip(x, y, w, h)
     h = h,
     rotVal = 0,
     type = 'spr',
-    alive = true
+    alive = true,
+    shotT = usagi.elapsed,
   }
   table.insert(State.enemies, newShip)
+end
+
+function Shooter(e)
+  local ens = e
+  for i=1, #ens do
+    if usagi.elapsed >= ens[i].shotT + 1 and State.player then
+      BulletMaker(State.player, ens[i].x, ens[i].y, 150)
+      ens[i].shotT = usagi.elapsed
+    end
+  end
 end
 
 function WeaponTracker(ting)
@@ -610,6 +624,7 @@ function _update(dt)
     Removals(State.player)
   end
   TimeTrick(State.time)
+  Shooter(State.enemies)
   while #State.stars < starNum do
     MakeStars()
   end
