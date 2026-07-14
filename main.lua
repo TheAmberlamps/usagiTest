@@ -302,17 +302,18 @@ function MakeShip(x, y, w, h)
     rotVal = 0,
     type = 'spr',
     alive = true,
-    shotT = usagi.elapsed,
+    shotT = usagi.elapsed + 1,
   }
   table.insert(State.enemies, newShip)
 end
 
 function Shooter(e)
   local ens = e
+  local elap = usagi.elapsed
   for i=1, #ens do
-    if usagi.elapsed >= ens[i].shotT + 1 and State.player then
+    if elap >= ens[i].shotT + 1 and State.player then
       BulletMaker(State.player, ens[i].x, ens[i].y, 150)
-      ens[i].shotT = usagi.elapsed + math.random(3)
+      ens[i].shotT = elap + 1--math.random(3)
     end
   end
 end
@@ -411,51 +412,52 @@ function MakeStars(num)
   table.insert(State.stars, star)
 end
 
-function Input(dt)
-  if State.player then
+function Input(dt, player)
+  local plr = player
+  if plr then
   if input.pressed(input.UP) or input.held(input.UP) then
-    State.player.movY = true
-    State.player.speedY -= accel - dt
-    if State.player.speedY < -10 then
-      State.player.speedY = -10
+    plr.movY = true
+    plr.speedY -= accel - dt
+    if plr.speedY < -10 then
+      plr.speedY = -10
     end
-    State.player.y += State.player.speedY
+    plr.y += plr.speedY
   end
   if input.released(input.UP) then
-    State.player.movY = false
+    plr.movY = false
   end
   if input.pressed(input.DOWN) or input.held(input.DOWN) then
-    State.player.movY = true
-    State.player.speedY += accel + dt
-    if State.player.speedY > 10 then
-      State.player.speedY = 10
+    plr.movY = true
+    plr.speedY += accel + dt
+    if plr.speedY > 10 then
+      plr.speedY = 10
     end
-    State.player.y += State.player.speedY
+    plr.y += plr.speedY
   end
   if input.released(input.DOWN) then
-    State.player.movY = false
+    plr.movY = false
   end
   if input.pressed(input.LEFT) or input.held(input.LEFT) then
-    State.player.movX = true
-    State.player.speedX -= accel - dt
-    if State.player.speedX < -10 then
-      State.player.speedX = -10
+    plr.movX = true
+    plr.speedX -= accel - dt
+    if plr.speedX < -10 then
+      plr.speedX = -10
     end
-    State.player.x += State.player.speedX
+    plr.x += plr.speedX
   end
   if input.released(input.LEFT) then
-    State.player.movX = false
+    plr.movX = false
   end
   if input.pressed(input.RIGHT) or input.held(input.RIGHT) then
-    State.player.movX = true
-    State.player.speedX += accel + dt
-    if State.player.speedX > 10 then
-      State.player.speedX = 10
+    plr.movX = true
+    plr.speedX += accel + dt
+    if plr.speedX > 10 then
+      plr.speedX = 10
     end
-    State.player.x += State.player.speedX
+    plr.x += plr.speedX
   end
   if input.released(input.RIGHT) then
-    State.player.movX = false
+    plr.movX = false
   end
   if input.held(input.BTN1) then
     if State.weapon[1].mass == baseMass then
@@ -467,51 +469,51 @@ function Input(dt)
       State.weapon[1].mass = baseMass
     end
   end
-    if State.player.movX == false then 
-      if State.player.speedX > 0 then
-      State.player.speedX -= accel
-      if State.player.speedX < 0 then
-        State.player.speedX = 0
+    if plr.movX == false then 
+      if plr.speedX > 0 then
+      plr.speedX -= accel
+      if plr.speedX < 0 then
+        plr.speedX = 0
       end
-    else if State.player.speedX < 0 then
-      State.player.speedX += accel
-      if State.player.speedX > 0 then
-        State.player.speedX = 0
+    else if plr.speedX < 0 then
+      plr.speedX += accel
+      if plr.speedX > 0 then
+        plr.speedX = 0
       end
     end
     end
-    State.player.x += State.player.speedX
+    plr.x += plr.speedX
     end
-    if State.player.x - State.player.r <= 0 then
-      State.player.x = 0 + State.player.r
-      State.player.speedX = -State.player.speedX
+    if plr.x - plr.r <= 0 then
+      plr.x = 0 + plr.r
+      plr.speedX = -plr.speedX
     end
-    if State.player.x + State.player.r >= usagi.GAME_W then
-      State.player.x = usagi.GAME_W - State.player.r
-      State.player.speedX = -State.player.speedX
+    if plr.x + plr.r >= usagi.GAME_W then
+      plr.x = usagi.GAME_W - plr.r
+      plr.speedX = -plr.speedX
     end
-    if State.player.movY == false then 
-      if State.player.speedY > 0 then
-        State.player.speedY -= accel
-        if State.player.speedY < 0 then
-          State.player.speedY = 0
+    if plr.movY == false then 
+      if plr.speedY > 0 then
+        plr.speedY -= accel
+        if plr.speedY < 0 then
+          plr.speedY = 0
         end
-      else if State.player.speedY < 0 then
-        State.player.speedY += accel
-        if State.player.speedY > 0 then
-          State.player.speedY = 0
+      else if plr.speedY < 0 then
+        plr.speedY += accel
+        if plr.speedY > 0 then
+          plr.speedY = 0
         end
       end
       end
-      State.player.y += State.player.speedY
+      plr.y += plr.speedY
     end
-    if State.player.y - State.player.r <= 0 then
-      State.player.y = 0 + State.player.r
-      State.player.speedY = -State.player.speedY
+    if plr.y - plr.r <= 0 then
+      plr.y = 0 + plr.r
+      plr.speedY = -plr.speedY
     end
-    if State.player.y + State.player.r >= usagi.GAME_H then
-      State.player.y = usagi.GAME_H - State.player.r
-      State.player.speedY = -State.player.speedY
+    if plr.y + plr.r >= usagi.GAME_H then
+      plr.y = usagi.GAME_H - plr.r
+      plr.speedY = -plr.speedY
     end
   end
 end
@@ -547,7 +549,8 @@ end
 function PlayerCol(e)
   local enArr = e
   local result
-  State.time = usagi.elapsed
+  -- This does not belong here at all
+  --State.time = usagi.elapsed
   for i=1, #enArr do
     if enArr[i].type == 'circ' then
       result = util.circ_overlap(enArr[i], State.player)
@@ -607,7 +610,7 @@ end
 
 function _update(dt)
   gameTime += dt
-  Input(dt)
+  Input(dt, State.player)
   BulletMov(State.bullets, dt)
   GravEf(State.weapon[1], State.player, dt)
   --MovementTest(State.weapon[1], State.player, 100, dt)
@@ -617,7 +620,8 @@ function _update(dt)
   --CollChk(State.weapon, State.player)
   CollChk(State.weapon, State.enemies)
   if State.player then
-    PlayerCol(State.weapon)
+    --PlayerCol(State.weapon)
+    -- whatever is fucked-up has to be tied to this, it's literally the collision math for the player
     PlayerCol(State.bullets)
     State.player.rotVal = RotVal(dt, timeInt)
     State.player.flipVal = FlipNum(0.5)
