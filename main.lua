@@ -313,7 +313,7 @@ function Shooter(e)
   for i=1, #ens do
     if elap >= ens[i].shotT + 1 and State.player then
       BulletMaker(State.player, ens[i].x, ens[i].y, 150)
-      ens[i].shotT = elap + 1--math.random(3)
+      ens[i].shotT = elap --math.random(3)
     end
   end
 end
@@ -549,18 +549,16 @@ end
 function PlayerCol(e)
   local enArr = e
   local result
-  -- This does not belong here at all
-  --State.time = usagi.elapsed
   for i=1, #enArr do
     if enArr[i].type == 'circ' then
       result = util.circ_overlap(enArr[i], State.player)
+      if result then
+        State.player.alive = false
+        effect.hitstop(1)
+        sfx.play("hit")
+        return true
+      end
     end
-  end
-  if result then
-    State.player.alive = false
-    effect.hitstop(1)
-    sfx.play("hit")
-    return true
   end
 end
 
@@ -616,8 +614,6 @@ function _update(dt)
   --MovementTest(State.weapon[1], State.player, 100, dt)
   ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
   CollChk(State.weapon, State.bullets)
-  --CollChk(State.bullets, State.player)
-  --CollChk(State.weapon, State.player)
   CollChk(State.weapon, State.enemies)
   if State.player then
     --PlayerCol(State.weapon)
