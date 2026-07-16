@@ -36,9 +36,9 @@ function _init()
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
   MakeShip(gameW, centH, sprWid * 2, sprWid * 2)
-  --MakeShip(0, centH, sprWid * 2, sprWid * 2)
-  --MakeShip(centW, 0, sprWid * 2, sprWid * 2)
-  --MakeShip(centW, gameH, sprWid * 2, sprWid * 2)
+  MakeShip(0 + 32, centH, sprWid * 2, sprWid * 2)
+  MakeShip(centW + 16, 16, sprWid * 2, sprWid * 2)
+  MakeShip(centW + 16, gameH - 16, sprWid * 2, sprWid * 2)
   --BulletMaker(State.player, gameW - 16, centH, 150)
   music.loop('RainPixLoFi')
 end
@@ -299,10 +299,19 @@ function MakeShip(x, y, w, h)
     y = y,
     w = w,
     h = h,
+    sx = x,
+    sy = y,
+    dx = x - w,
+    dy = y,
     rotVal = 0,
     type = 'spr',
     alive = true,
+    shooting = false,
     shotT = usagi.elapsed + 1,
+    update = function()
+      --local message = "yea boi"
+      --print(message)
+    end
   }
   table.insert(State.enemies, newShip)
 end
@@ -312,7 +321,7 @@ function Shooter(e)
   local elap = usagi.elapsed
   for i=1, #ens do
     if elap >= ens[i].shotT + 1 and State.player then
-      BulletMaker(State.player, ens[i].x, ens[i].y, 150)
+      BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, 150)
       ens[i].shotT = elap --math.random(3)
     end
   end
@@ -518,6 +527,24 @@ function Input(dt, player)
   end
 end
 
+function CollisionTesting(dt, w)
+  local wep = w
+  for i=1, #wep do
+    if input.pressed(input.UP) or input.held(input.UP) then
+      wep[i].y -= 1
+    end
+    if input.pressed(input.DOWN) or input.held(input.DOWN) then
+      wep[i].y += 1
+    end
+    if input.pressed(input.LEFT) or input.held(input.LEFT) then
+      wep[i].x -= 1
+    end
+    if input.pressed(input.RIGHT) or input.held(input.RIGHT) then
+      wep[i].x += 1
+    end
+  end
+end
+
 function CollChk(c1, c2)
   local mainC = c1
   local secC = c2
@@ -531,7 +558,7 @@ function CollChk(c1, c2)
         -- necessary to create a new table so as to not modify the original... may want to wrap this into its own function, but if this is the only place this code is used that seems like a waste of time.
         local newTab = {x=0,y=0,w=secC[j].w,h=secC[j].h}
         newTab.x = secC[j].x - newTab.w
-        newTab.y = secC[j].y - newTab.h
+        newTab.y = secC[j].y - newTab.h / 2
         result = util.circ_rect_overlap(mainC[i], newTab)
       end
       if result then
@@ -547,7 +574,7 @@ function CollChk(c1, c2)
 end
 
 function PlayerCol(e)
-  local enArr = e
+  local enArr = e 
   local result
   for i=1, #enArr do
     if enArr[i].type == 'circ' then
@@ -611,6 +638,8 @@ function _update(dt)
   Input(dt, State.player)
   BulletMov(State.bullets, dt)
   GravEf(State.weapon[1], State.player, dt)
+  -- 2 test functions
+  --CollisionTesting(dt, State.weapon)
   --MovementTest(State.weapon[1], State.player, 100, dt)
   ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
   CollChk(State.weapon, State.bullets)
@@ -622,6 +651,9 @@ function _update(dt)
     State.player.rotVal = RotVal(dt, timeInt)
     State.player.flipVal = FlipNum(0.5)
     Removals(State.player)
+  end
+  for i=1, #State.enemies do
+    State.enemies[i].update()
   end
   TimeTrick(State.time)
   Shooter(State.enemies)
