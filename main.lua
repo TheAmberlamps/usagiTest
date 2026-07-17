@@ -29,18 +29,20 @@ function _init()
     stars = {},
     bullets = {},
     enemies = {},
+    lines = {}
   }
     while #State.stars < starNum do
       MakeStars(1)
     end
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
-  MakeShip(gameW, centH, sprWid * 2, sprWid * 2)
-  MakeShip(0 + 32, centH, sprWid * 2, sprWid * 2)
-  MakeShip(centW + 16, 16, sprWid * 2, sprWid * 2)
-  MakeShip(centW + 16, gameH - 16, sprWid * 2, sprWid * 2)
+  MakeShip(gameW, centH, sprWid * 2, sprWid * 2, {x = gameW - sprWid, y = centH + sprWid})
+  --MakeShip(0 + 32, centH, sprWid * 2, sprWid * 2)
+  --MakeShip(centW + 16, 16, sprWid * 2, sprWid * 2)
+  --MakeShip(centW + 16, gameH - 16, sprWid * 2, sprWid * 2)
   --BulletMaker(State.player, gameW - 16, centH, 150)
   music.loop('RainPixLoFi')
+  LayoutCheck()
 end
 
 -- OK trying a little animation trick here; let's supply the raw value in degrees and only convert it to radians when needed
@@ -293,16 +295,18 @@ end
   --end
 --end
 
-function MakeShip(x, y, w, h)
+function MakeShip(x, y, w, h, d)
   local newShip = {
     x = x,
     y = y,
     w = w,
     h = h,
-    sx = x,
-    sy = y,
-    dx = x - w,
-    dy = y,
+    -- this should be dependent on spawn location compared to screen values
+    -- that being said let's try hard-coding one solution and then moving towards that goal
+    dPos = {
+      x = d.x,
+      y = d.y
+    },
     rotVal = 0,
     type = 'spr',
     alive = true,
@@ -589,6 +593,19 @@ function PlayerCol(e)
   end
 end
 
+function EnemIntro(e, v)
+  local en = e
+  local val = v
+  for i=1, #en do
+    if en[i].x > en[i].dPos.x then
+      en[i].x -= val
+    end
+    if en[i].y < en[i].dPos.y then
+      en[i].y += val
+    end
+  end
+end
+
 function Removals(a)
   local arr = a
   if arr == State.player and State.player.alive == false then
@@ -616,6 +633,27 @@ function TimeTrick(t)
   end
 end
 
+function LayoutCheck()
+  local vertL = {
+    x1 = centW,
+    y1 = 0,
+    x2 = centW,
+    y2 = gameH,
+    col = gfx.COLOR_RED,
+    a = 1
+  }
+  local horiL = {
+    x1 = 0,
+    y1 = centH,
+    x2 = gameW,
+    y2 = centH,
+    col = gfx.COLOR_RED,
+    a = 1
+  }
+  table.insert(State.lines, vertL)
+  table.insert(State.lines, horiL)
+end
+
 function AlphaShift(dt)
   local al = State.player.alpha
   if input.held(input.BTN1) then
@@ -636,6 +674,7 @@ end
 function _update(dt)
   gameTime += dt
   Input(dt, State.player)
+  EnemIntro(State.enemies, 0.5)
   BulletMov(State.bullets, dt)
   GravEf(State.weapon[1], State.player, dt)
   -- 2 test functions
@@ -675,6 +714,9 @@ function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
   gfx.text(math.floor(usagi.elapsed) .. 's', centW, gameH - 40, gfx.COLOR_WHITE)
   gfx.text(math.floor(gameTime) ..'s', centW, gameH - 20, gfx.COLOR_WHITE)
+  for i=1, #State.lines do
+    gfx.line(State.lines[i].x1, State.lines[i].y1, State.lines[i].x2, State.lines[i].y2, State.lines[i].col)
+  end
   for i=1, #State.stars do
     gfx.px(State.stars[i].tingX, State.stars[i].tingY, gfx.COLOR_WHITE)
   end
@@ -691,7 +733,7 @@ function _draw(dt)
   end
   for i=1, #State.enemies do
     if State.player then
-      State.enemies[i].rotVal = math.atan(State.enemies[i].y - State.player.y, State.enemies[i].x - State.player.x)
+      State.enemies[i].rotVal = math.atan(State.enemies[i].y - State.player.y, State.enemies[i].x - State.enemies[i].w / 2 - State.player.x)
     end
     --print(newAngle)
     gfx.sspr_ex(16, 0, 16, 16, State.enemies[i].x - 32, State.enemies[i].y - 16, 16 * 2, 16 * 2, false, false, State.enemies[i].rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
