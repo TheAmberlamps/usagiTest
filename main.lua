@@ -36,7 +36,7 @@ function _init()
     end
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
-  MakeShip(gameW, centH, sprWid * 2, sprWid * 2, {x = gameW - sprWid, y = centH + sprWid})
+  MakeShip(sprWid * 2, sprWid * 2, {x = gameW - sprWid, y = centH + sprWid}, 'b', 20)
   --MakeShip(0 + 32, centH, sprWid * 2, sprWid * 2)
   --MakeShip(centW + 16, 16, sprWid * 2, sprWid * 2)
   --MakeShip(centW + 16, gameH - 16, sprWid * 2, sprWid * 2)
@@ -295,28 +295,47 @@ end
   --end
 --end
 
-function MakeShip(x, y, w, h, d)
+function MakeShip(w, h, d, spn, spd)
   local newShip = {
-    x = x,
-    y = y,
+    x = centW + w / 2,
+    y = centH,
     w = w,
     h = h,
+    spn = spn,
+    spd = spd,
     -- this should be dependent on spawn location compared to screen values
     -- that being said let's try hard-coding one solution and then moving towards that goal
-    dPos = {
-      x = d.x,
-      y = d.y
-    },
+    sPos = nil,
+    dPos = d,
+    dVel = nil,
     rotVal = 0,
     type = 'spr',
     alive = true,
+    intro = true,
     shooting = false,
     shotT = usagi.elapsed + 1,
-    update = function()
-      --local message = "yea boi"
-      --print(message)
-    end
   }
+  if newShip.spn == 'r' then
+    newShip.x = gameW + newShip.w
+    newShip.dPos = {x = gameW - newShip.w, y = newShip.y}
+    newShip.dVel = util.vec_from_angle(math.atan(newShip.y - newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
+  end
+  if newShip.spn == 'l' then
+    newShip.x = -newShip.w
+    newShip.dPos = {x = newShip.w * 2, y = newShip.y}
+    newShip.dVel = util.vec_from_angle(math.atan(newShip.y - newShip.dPos.y, newShip.x + newShip.dPos.x), newShip.spd)
+  end
+  if newShip.spn == 't' then
+    newShip.y = -newShip.h
+    newShip.dPos = {x = newShip.x, y = newShip.h * 2}
+    newShip.dVel = util.vec_from_angle(math.atan(newShip.y + newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
+  end
+  if newShip.spn == 'b' then
+    newShip.y = gameH + newShip.h
+    newShip.dPos = {x = newShip.x, y = gameH - newShip.h}
+    newShip.dVel = util.vec_from_angle(math.atan(newShip.y - newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
+  end
+  newShip.sPos = {x = newShip.x, y = newShip.y}
   table.insert(State.enemies, newShip)
 end
 
@@ -324,7 +343,7 @@ function Shooter(e)
   local ens = e
   local elap = usagi.elapsed
   for i=1, #ens do
-    if elap >= ens[i].shotT + 1 and State.player then
+    if elap >= ens[i].shotT + 1 and State.player and ens[i].shooting == true then
       BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, 150)
       ens[i].shotT = elap --math.random(3)
     end
@@ -593,15 +612,35 @@ function PlayerCol(e)
   end
 end
 
-function EnemIntro(e, v)
+function EnemIntro(e, v, dt)
   local en = e
   local val = v
   for i=1, #en do
-    if en[i].x > en[i].dPos.x then
-      en[i].x -= val
-    end
-    if en[i].y < en[i].dPos.y then
-      en[i].y += val
+    if not en[i].shooting then
+      if en[i].sPos.x > en[i].dPos.x then
+        en[i].x -= en[i].dVel.x * dt
+        if en[i].x < en[i].dPos.x then
+          en[i].x = en[i].dPos.x
+        end
+      elseif en[i].sPos.x < en[i].dPos.x then
+        en[i].x += en[i].dVel.x * dt
+        if en[i].x > en[i].dPos.x then
+          en[i].x = en[i].dPos.x
+        end
+      elseif en[i].sPos.y > en[i].dPos.y then
+        en[i].y -= en[i].dVel.y * dt
+        if en[i].y < en[i].dPos.y then
+          en[i].y = en[i].dPos.y
+        end
+      elseif en[i].sPos.y < en[i].dPos.y then
+        en[i].y += en[i].dVel.y * dt
+        if en[i].y > en[i].dPos.y then
+          en[i].y = en[i].dPos.y
+        end
+      end
+      if en[i].x == en[i].dPos.x and en[i].y == en[i].dPos.y then
+        en[i].shooting = true
+      end
     end
   end
 end
@@ -674,7 +713,7 @@ end
 function _update(dt)
   gameTime += dt
   Input(dt, State.player)
-  EnemIntro(State.enemies, 0.5)
+  EnemIntro(State.enemies, 0.2, dt)
   BulletMov(State.bullets, dt)
   GravEf(State.weapon[1], State.player, dt)
   -- 2 test functions
@@ -684,15 +723,14 @@ function _update(dt)
   CollChk(State.weapon, State.bullets)
   CollChk(State.weapon, State.enemies)
   if State.player then
+    -- as long as player is alive, stored time will be set to usagi.elapsed; TimeTrick will only trigger if State.time > usagi.elapsed + 1, which should never happen if player lives. It may be hacky but hell, it works
+    State.time = usagi.elapsed
     --PlayerCol(State.weapon)
     -- whatever is fucked-up has to be tied to this, it's literally the collision math for the player
     PlayerCol(State.bullets)
     State.player.rotVal = RotVal(dt, timeInt)
     State.player.flipVal = FlipNum(0.5)
     Removals(State.player)
-  end
-  for i=1, #State.enemies do
-    State.enemies[i].update()
   end
   TimeTrick(State.time)
   Shooter(State.enemies)
@@ -735,7 +773,6 @@ function _draw(dt)
     if State.player then
       State.enemies[i].rotVal = math.atan(State.enemies[i].y - State.player.y, State.enemies[i].x - State.enemies[i].w / 2 - State.player.x)
     end
-    --print(newAngle)
     gfx.sspr_ex(16, 0, 16, 16, State.enemies[i].x - 32, State.enemies[i].y - 16, 16 * 2, 16 * 2, false, false, State.enemies[i].rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
   end
   for i=1, #State.weapon do
