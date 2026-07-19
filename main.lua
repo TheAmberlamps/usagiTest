@@ -697,7 +697,7 @@ end
 
 function BitBlast(i)
   if i then
-    dandelion.dandelion_cloud(centW, centH)
+    dandelion.line(centW, centH)
   end
 end
 
