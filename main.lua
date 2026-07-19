@@ -2,6 +2,7 @@ function _config()
   return { name = "Game", game_id = "com.usagiengine.YOURGAMENAME" }
 end
 
+local dandelion = require "dandelion"
 local timeInt = 1
 local fxTim = true
 local baseMass = 2
@@ -9,6 +10,7 @@ local colVal = 1
 local sprWid = 16
 local subVal = true
 local accel = 0.25
+local movSpd = 20
 local gameTime = 0
 local gameW = usagi.GAME_W
 local gameH = usagi.GAME_H
@@ -36,7 +38,7 @@ function _init()
     end
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
-  MakeShip(sprWid * 2, sprWid * 2, {x = gameW - sprWid, y = centH + sprWid}, 'b', 20)
+  MakeShip(sprWid * 2, sprWid * 2, {x = gameW - sprWid, y = centH + sprWid}, 'b', movSpd)
   --MakeShip(0 + 32, centH, sprWid * 2, sprWid * 2)
   --MakeShip(centW + 16, 16, sprWid * 2, sprWid * 2)
   --MakeShip(centW + 16, gameH - 16, sprWid * 2, sprWid * 2)
@@ -693,6 +695,12 @@ function LayoutCheck()
   table.insert(State.lines, horiL)
 end
 
+function BitBlast(i)
+  if i then
+    dandelion.dandelion_cloud(centW, centH)
+  end
+end
+
 function AlphaShift(dt)
   local al = State.player.alpha
   if input.held(input.BTN1) then
@@ -712,6 +720,7 @@ end
 
 function _update(dt)
   gameTime += dt
+  BitBlast(input.pressed(input.BTN2))
   Input(dt, State.player)
   EnemIntro(State.enemies, 0.2, dt)
   BulletMov(State.bullets, dt)
@@ -750,6 +759,8 @@ end
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
+  --gfx.clear(gfx.COLOR_BLUE)
+  dandelion.Draw()
   gfx.text(math.floor(usagi.elapsed) .. 's', centW, gameH - 40, gfx.COLOR_WHITE)
   gfx.text(math.floor(gameTime) ..'s', centW, gameH - 20, gfx.COLOR_WHITE)
   for i=1, #State.lines do
