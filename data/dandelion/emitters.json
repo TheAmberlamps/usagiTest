@@ -157,5 +157,15 @@
         "name": "text"
       }
     ]
+  },
+  {
+    "name": "debris_emitter",
+    "duration": 5,
+    "color": "gfx.COLOR_WHITE",
+    "particles": [
+      {
+        "name": "debris"
+      }
+    ]
   }
 ]

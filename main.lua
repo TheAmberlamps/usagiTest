@@ -12,10 +12,10 @@ local subVal = true
 local accel = 0.25
 local movSpd = 20
 local gameTime = 0
-local gameW = usagi.GAME_W
-local gameH = usagi.GAME_H
-local centW = usagi.GAME_W / 2
-local centH = usagi.GAME_H / 2
+GameW = usagi.GAME_W
+GameH = usagi.GAME_H
+CentW = usagi.GAME_W / 2
+CentH = usagi.GAME_H / 2
 local starNum = 50
 local ellRot = 0
 local arrow = {}
@@ -38,11 +38,11 @@ function _init()
     end
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
-  MakeShip(sprWid * 2, sprWid * 2, {x = gameW - sprWid, y = centH + sprWid}, 'b', movSpd)
-  --MakeShip(0 + 32, centH, sprWid * 2, sprWid * 2)
-  --MakeShip(centW + 16, 16, sprWid * 2, sprWid * 2)
-  --MakeShip(centW + 16, gameH - 16, sprWid * 2, sprWid * 2)
-  --BulletMaker(State.player, gameW - 16, centH, 150)
+  MakeShip(sprWid * 2, sprWid * 2, {x = GameW - sprWid, y = CentH + sprWid}, 'b', movSpd)
+  --MakeShip(0 + 32, CentH, sprWid * 2, sprWid * 2)
+  --MakeShip(CentW + 16, 16, sprWid * 2, sprWid * 2)
+  --MakeShip(CentW + 16, GameH - 16, sprWid * 2, sprWid * 2)
+  --BulletMaker(State.player, GameW - 16, CentH, 150)
   music.loop('RainPixLoFi')
   LayoutCheck()
 end
@@ -140,9 +140,9 @@ function ArrowMaker(d, w)
   function GetDist(dir, w)
     local origin = {0, 0}
     if dir == 'r' or dir == 'tR' or dir == 'bR' then
-      origin[1] = gameW
+      origin[1] = GameW
       if data == 'bR' then
-        origin[2] = gameH
+        origin[2] = GameH
       end
       if data == 'r' then
         origin[2] = w.y
@@ -150,7 +150,7 @@ function ArrowMaker(d, w)
     end
     if dir == 'l' or dir == 'bL' or dir == 'tL' then
       if data == 'bL' then
-        origin[2] = gameH
+        origin[2] = GameH
       end
       if data == 'l' then
         origin[2] = w.y
@@ -161,7 +161,7 @@ function ArrowMaker(d, w)
     end
     if dir == 'd' then
       origin[1] = w.x
-      origin[2] = gameH
+      origin[2] = GameH
     end
     local dest = {0, 0}
     dest[1] = w.x
@@ -182,10 +182,10 @@ function ArrowMaker(d, w)
       nA.tY = (len * 1.5) - nA.tH / 2
     elseif data == "bL" then
       nA.x3 = 10
-      nA.y1 = gameH
-      nA.y2 = gameH - len
-      nA.y3 = gameH
-      nA.tY = gameH - (len * 1.5) - nA.tH / 2
+      nA.y1 = GameH
+      nA.y2 = GameH - len
+      nA.y3 = GameH
+      nA.tY = GameH - (len * 1.5) - nA.tH / 2
     else
       nA.y1 = wep.y
       nA.x2 = len
@@ -196,25 +196,25 @@ function ArrowMaker(d, w)
     end
   end
   if data == 'tR' or data == "r" or data == "bR" then
-    nA.x1 = gameW
-    nA.tX = gameW - (len * 1.5) - nA.tW
+    nA.x1 = GameW
+    nA.tX = GameW - (len * 1.5) - nA.tW
     if data == 'tR' then
-      nA.x2 = gameW
+      nA.x2 = GameW
       nA.y2 = len
-      nA.x3 = gameW - len
+      nA.x3 = GameW - len
       nA.tY = (len * 1.5) - nA.tH / 2
     elseif data == 'bR' then
-      nA.y1 = gameH
-      nA.x2 = gameW - len
-      nA.y2 = gameH
-      nA.x3 = gameW
-      nA.y3 = gameH - len
-      nA.tY = gameH - (len * 1.5) - nA.tH / 2
+      nA.y1 = GameH
+      nA.x2 = GameW - len
+      nA.y2 = GameH
+      nA.x3 = GameW
+      nA.y3 = GameH - len
+      nA.tY = GameH - (len * 1.5) - nA.tH / 2
     else
       nA.y1 = wep.y
-      nA.x2 = gameW - len
+      nA.x2 = GameW - len
       nA.y2 = wep.y + len
-      nA.x3 = gameW - len
+      nA.x3 = GameW - len
       nA.y3 = wep.y - len
       nA.tY = wep.y - nA.tH / 2
     end
@@ -230,13 +230,13 @@ function ArrowMaker(d, w)
   end
   if data == "d" then
     nA.x1 = wep.x
-    nA.y1 = gameH
+    nA.y1 = GameH
     nA.x2 = wep.x - len
-    nA.y2 = gameH - len
+    nA.y2 = GameH - len
     nA.x3 = wep.x + len
-    nA.y3 = gameH - len
+    nA.y3 = GameH - len
     nA.tX = wep.x - nA.tW / 2
-    nA.tY = gameH - (len * 1.5) - nA.tH / 2
+    nA.tY = GameH - (len * 1.5) - nA.tH / 2
   end
   table.insert(arrow, nA)
 end
@@ -270,17 +270,17 @@ function BulletMov(buls, dt)
   for i=#bArr, 1, -1 do
     bArr[i].x -= bArr[i].vel.x * dt
     bArr[i].y -= bArr[i].vel.y * dt
-    if bArr[i].x < 0 - bArr[i].r or bArr[i].y < 0 - bArr[i].r or bArr[i].y > gameH + bArr[i].r then
+    if bArr[i].x < 0 - bArr[i].r or bArr[i].y < 0 - bArr[i].r or bArr[i].y > GameH + bArr[i].r then
       table.remove(buls, i)
       -- this below will need to be overhauled
       if State.player then
-        --BulletMaker(State.player, gameW - 16, centH, 150)
+        --BulletMaker(State.player, GameW - 16, CentH, 150)
       end
     elseif bArr[i].alive == false then
       table.remove(buls, i)
       sfx.play("bullHit")
       if State.player then
-        --BulletMaker(State.player, gameW - 16, centH, 150)
+        --BulletMaker(State.player, GameW - 16, CentH, 150)
       end
     end
   end
@@ -299,8 +299,8 @@ end
 
 function MakeShip(w, h, d, spn, spd)
   local newShip = {
-    x = centW + w / 2,
-    y = centH,
+    x = CentW + w / 2,
+    y = CentH,
     w = w,
     h = h,
     spn = spn,
@@ -318,8 +318,8 @@ function MakeShip(w, h, d, spn, spd)
     shotT = usagi.elapsed + 1,
   }
   if newShip.spn == 'r' then
-    newShip.x = gameW + newShip.w
-    newShip.dPos = {x = gameW - newShip.w, y = newShip.y}
+    newShip.x = GameW + newShip.w
+    newShip.dPos = {x = GameW - newShip.w, y = newShip.y}
     newShip.dVel = util.vec_from_angle(math.atan(newShip.y - newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
   end
   if newShip.spn == 'l' then
@@ -333,8 +333,8 @@ function MakeShip(w, h, d, spn, spd)
     newShip.dVel = util.vec_from_angle(math.atan(newShip.y + newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
   end
   if newShip.spn == 'b' then
-    newShip.y = gameH + newShip.h
-    newShip.dPos = {x = newShip.x, y = gameH - newShip.h}
+    newShip.y = GameH + newShip.h
+    newShip.dPos = {x = newShip.x, y = GameH - newShip.h}
     newShip.dVel = util.vec_from_angle(math.atan(newShip.y - newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
   end
   newShip.sPos = {x = newShip.x, y = newShip.y}
@@ -354,34 +354,34 @@ end
 
 function WeaponTracker(ting)
   local wep = ting
-  if wep.x > 0 and wep.x < gameW and wep.y > 0 and wep.y < gameH then
+  if wep.x > 0 and wep.x < GameW and wep.y > 0 and wep.y < GameH then
     return "IN"
   end
   if wep.x < 0 and wep.y < 0 then
     return "tL"
   end
-  if wep.x < 0 and wep.y > gameH then
+  if wep.x < 0 and wep.y > GameH then
     return "bL"
   end
-  if wep.x > gameW and wep.y < 0 then
+  if wep.x > GameW and wep.y < 0 then
     return "tR"
   end
-  if wep.x > gameW and wep.y > gameH then
+  if wep.x > GameW and wep.y > GameH then
     return "bR"
   end
-  if wep.x > 0 and wep.x < gameW then
+  if wep.x > 0 and wep.x < GameW then
     if wep.y < 0 then
       return "u"
     end
-    if wep.y > gameH then
+    if wep.y > GameH then
       return "d"
     end
   end
-  if wep.y > 0 and wep.y < gameH then
+  if wep.y > 0 and wep.y < GameH then
     if wep.x < 0 then
       return "l"
     end
-    if wep.x > gameW then
+    if wep.x > GameW then
       return "r"
     end
   end
@@ -400,8 +400,8 @@ end
 
 function DrawingTing(typeInput)
   local newTing = {
-    x = centW,
-    y = centH,
+    x = CentW,
+    y = CentH,
     r = 5,
     type = typeInput,
     name = 'player',
@@ -676,18 +676,18 @@ end
 
 function LayoutCheck()
   local vertL = {
-    x1 = centW,
+    x1 = CentW,
     y1 = 0,
-    x2 = centW,
-    y2 = gameH,
+    x2 = CentW,
+    y2 = GameH,
     col = gfx.COLOR_RED,
     a = 1
   }
   local horiL = {
     x1 = 0,
-    y1 = centH,
-    x2 = gameW,
-    y2 = centH,
+    y1 = CentH,
+    x2 = GameW,
+    y2 = CentH,
     col = gfx.COLOR_RED,
     a = 1
   }
@@ -697,7 +697,8 @@ end
 
 function BitBlast(i)
   if i then
-    dandelion.line(centW, centH)
+    dandelion.debris(CentW, CentH)
+    --dandelion.debris_emitter(CentW, CentH)
   end
 end
 
@@ -761,8 +762,8 @@ function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
   --gfx.clear(gfx.COLOR_BLUE)
   dandelion.Draw()
-  gfx.text(math.floor(usagi.elapsed) .. 's', centW, gameH - 40, gfx.COLOR_WHITE)
-  gfx.text(math.floor(gameTime) ..'s', centW, gameH - 20, gfx.COLOR_WHITE)
+  gfx.text(math.floor(usagi.elapsed) .. 's', CentW, GameH - 40, gfx.COLOR_WHITE)
+  gfx.text(math.floor(gameTime) ..'s', CentW, GameH - 20, gfx.COLOR_WHITE)
   for i=1, #State.lines do
     gfx.line(State.lines[i].x1, State.lines[i].y1, State.lines[i].x2, State.lines[i].y2, State.lines[i].col)
   end
