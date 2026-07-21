@@ -184,14 +184,15 @@
   },
   {
     "name": "debris",
-    "dx": "State.player.x - CentW",
-    "dy": "self.age * 30",
-    "duration": 5,
+    "dx": "0",
+    "dy": "0",
+    "duration": 1,
     "type": "circle",
     "color": "gfx.COLOR_WHITE",
     "config": {
       "radius": 2,
-      "outline": 1
+      "outline": 1,
+      "alpha": "1 - self.age / self.duration"
     }
   }
 ]

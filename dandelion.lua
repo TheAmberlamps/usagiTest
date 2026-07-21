@@ -192,12 +192,12 @@ local function draw_particle(particle)
         gfx.text_ex("" .. text, adjusted_x, adjusted_y, scale, rotation, color, alpha)
     elseif particle.type == "circle" then
         local radius = compute_particle_expression(particle, config.radius or 1)
-
+        local alpha = compute_particle_expression(particle, config.alpha or 1)
         if config.outline then
             local outline = compute_particle_expression(particle, config.outline or 1)
-            gfx.circ_ex(adjusted_x, adjusted_y, radius + outline / 2, outline, color)
+            gfx.circ_ex(adjusted_x, adjusted_y, radius + outline / 2, outline, color, alpha)
         else
-            gfx.circ_fill(adjusted_x, adjusted_y, radius, color)
+            gfx.circ_fill(adjusted_x, adjusted_y, radius, color, alpha)
         end
     elseif particle.type == "triangle" then
         -- local size = self:compute(self.size)

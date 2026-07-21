@@ -160,11 +160,20 @@
   },
   {
     "name": "debris_emitter",
-    "duration": 5,
+    "duration": 0.1,
     "color": "gfx.COLOR_WHITE",
     "particles": [
       {
-        "name": "debris"
+        "name": "debris",
+        "count": 15,
+        "shape": "circle",
+        "duration": 0.1,
+        "config": {
+          "radius": "10 * self.age",
+          "distribution": "random",
+          "outline": false,
+          "motion": 40
+        }
       }
     ]
   }

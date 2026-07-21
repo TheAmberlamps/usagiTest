@@ -589,6 +589,7 @@ function CollChk(c1, c2)
       if result then
         if secC[j].type == 'spr' then
           sfx.play('shipEx')
+          dandelion.debris_emitter(secC[j].x - secC[j].w / 2 , secC[j].y)
           --effect.screen_shake(1, 1)
         end
         secC[j].alive = false
@@ -697,7 +698,7 @@ end
 
 function BitBlast(i)
   if i then
-    dandelion.debris(CentW, CentH)
+    dandelion.debris_emitter(CentW, CentH)
     --dandelion.debris_emitter(CentW, CentH)
   end
 end
