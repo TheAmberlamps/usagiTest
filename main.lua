@@ -38,13 +38,13 @@ function _init()
     end
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
-  MakeShip(sprWid * 2, sprWid * 2, {x = GameW - sprWid, y = CentH + sprWid}, 'b', movSpd)
+  MakeShip(sprWid * 2, sprWid * 2, {x = GameW - sprWid, y = CentH + sprWid}, 'r', movSpd)
   --MakeShip(0 + 32, CentH, sprWid * 2, sprWid * 2)
   --MakeShip(CentW + 16, 16, sprWid * 2, sprWid * 2)
   --MakeShip(CentW + 16, GameH - 16, sprWid * 2, sprWid * 2)
   --BulletMaker(State.player, GameW - 16, CentH, 150)
   music.loop('RainPixLoFi')
-  LayoutCheck()
+  --LayoutCheck()
 end
 
 -- OK trying a little animation trick here; let's supply the raw value in degrees and only convert it to radians when needed
@@ -608,6 +608,7 @@ function PlayerCol(e)
       if result then
         State.player.alive = false
         effect.hitstop(1)
+        --dandelion.debris_emitter(State.player.x, State.player.y)
         sfx.play("hit")
         return true
       end
@@ -669,8 +670,10 @@ function TimeTrick(t)
     else
       effect.screen_shake(1, 2)
       --sfx.play("hitBlast")
+      dandelion.debris_emitter(State.player.x, State.player.y)
       sfx.play("explosion")
       fxTim = false
+      Removals(State.player)
     end
   end
 end
@@ -722,7 +725,6 @@ end
 
 function _update(dt)
   gameTime += dt
-  BitBlast(input.pressed(input.BTN2))
   Input(dt, State.player)
   EnemIntro(State.enemies, 0.2, dt)
   BulletMov(State.bullets, dt)
@@ -733,17 +735,16 @@ function _update(dt)
   ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
   CollChk(State.weapon, State.bullets)
   CollChk(State.weapon, State.enemies)
+  TimeTrick(State.time)
   if State.player then
     -- as long as player is alive, stored time will be set to usagi.elapsed; TimeTrick will only trigger if State.time > usagi.elapsed + 1, which should never happen if player lives. It may be hacky but hell, it works
     State.time = usagi.elapsed
-    --PlayerCol(State.weapon)
+    PlayerCol(State.weapon)
     -- whatever is fucked-up has to be tied to this, it's literally the collision math for the player
     PlayerCol(State.bullets)
     State.player.rotVal = RotVal(dt, timeInt)
     State.player.flipVal = FlipNum(0.5)
-    Removals(State.player)
   end
-  TimeTrick(State.time)
   Shooter(State.enemies)
   while #State.stars < starNum do
     MakeStars()
