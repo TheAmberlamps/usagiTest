@@ -664,6 +664,7 @@ end
 
 function TimeTrick(t)
   local time = t
+  -- global bool to determine if this should run or not
   if fxTim then
     if time + 1 > usagi.elapsed then
       return
@@ -718,6 +719,11 @@ function AlphaShift(dt)
     if al < 0 then
       al = 0
     end
+  end
+  if al > 0 then
+    sfx.play_ex('chargeTone', al / 2, al * -3, 0)
+    sfx.play_ex('chargeTone', al / 2, al * -2, 0)
+    sfx.play_ex('chargeTone', al / 2, al * -1, 0)
   end
   State.player.alpha = al
   return al
