@@ -721,9 +721,9 @@ function AlphaShift(dt)
     end
   end
   if al > 0 then
-    sfx.play_ex('chargeTone', al / 2, al * -3, 0)
-    sfx.play_ex('chargeTone', al / 2, al * -2, 0)
-    sfx.play_ex('chargeTone', al / 2, al * -1, 0)
+    sfx.play_ex('chargeToneClipd', al / 2, al * -3, 0)
+    sfx.play_ex('chargeToneClipd', al / 2, al * -2, 0)
+    sfx.play_ex('chargeToneClipd', al / 2, al * -1, 0)
   end
   State.player.alpha = al
   return al
