@@ -707,6 +707,7 @@ function BitBlast(i)
   end
 end
 
+-- this is a wonderful bit of code but it's executing in the wrong place; it's being fed as an argument to a drawing function in the drawing loop, it should be executed in the update loop and that result should be used to draw.
 function AlphaShift(dt)
   local al = State.player.alpha
   if input.held(input.BTN1) then
@@ -721,6 +722,7 @@ function AlphaShift(dt)
     end
   end
   if al > 0 then
+    -- this also is lovely but should be relegated to its own function so that errors related to sound bullshit are more easily traceable.
     sfx.play_ex('chargeToneClipd', al / 2, al * -3, 0)
     sfx.play_ex('chargeToneClipd', al / 2, al * -2, 0)
     sfx.play_ex('chargeToneClipd', al / 2, al * -1, 0)
