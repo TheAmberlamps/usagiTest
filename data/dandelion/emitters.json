@@ -165,7 +165,7 @@
     "particles": [
       {
         "name": "debris",
-        "count": 15,
+        "count": 20,
         "shape": "circle",
         "duration": 0.1,
         "config": {

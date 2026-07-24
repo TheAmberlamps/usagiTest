@@ -190,8 +190,7 @@
     "type": "circle",
     "color": "gfx.COLOR_WHITE",
     "config": {
-      "radius": 2,
-      "outline": 1,
+      "radius": "math.random(1, 5)",
       "alpha": "1 - self.age / self.duration"
     }
   }
