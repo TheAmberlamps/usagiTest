@@ -16,6 +16,8 @@ GameW = usagi.GAME_W
 GameH = usagi.GAME_H
 CentW = usagi.GAME_W / 2
 CentH = usagi.GAME_H / 2
+local pX = 0
+local pY = 0
 local starNum = 50
 local ellRot = 0
 local arrow = {}
@@ -671,10 +673,9 @@ function TimeTrick(t)
     else
       effect.screen_shake(1, 2)
       --sfx.play("hitBlast")
-      dandelion.debris_emitter(State.player.x, State.player.y)
+      dandelion.debris_emitter(pX, pY)
       sfx.play("explosion")
       fxTim = false
-      Removals(State.player)
     end
   end
 end
@@ -703,7 +704,6 @@ end
 function BitBlast(i)
   if i then
     dandelion.debris_emitter(CentW, CentH)
-    --dandelion.debris_emitter(CentW, CentH)
   end
 end
 
@@ -743,8 +743,9 @@ function _update(dt)
   ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
   CollChk(State.weapon, State.bullets)
   CollChk(State.weapon, State.enemies)
-  TimeTrick(State.time)
   if State.player then
+    pX = State.player.x
+    pY = State.player.y
     -- as long as player is alive, stored time will be set to usagi.elapsed; TimeTrick will only trigger if State.time > usagi.elapsed + 1, which should never happen if player lives. It may be hacky but hell, it works
     State.time = usagi.elapsed
     PlayerCol(State.weapon)
@@ -752,6 +753,7 @@ function _update(dt)
     PlayerCol(State.bullets)
     State.player.rotVal = RotVal(dt, timeInt)
     State.player.flipVal = FlipNum(0.5)
+    Removals(State.player)
   end
   Shooter(State.enemies)
   while #State.stars < starNum do
@@ -766,6 +768,7 @@ function _update(dt)
   end
   State.weapon[1].color = ColourShift(colVal)
   Removals(State.enemies)
+  TimeTrick(State.time)
 end
 
 function _draw(dt)
