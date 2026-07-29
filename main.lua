@@ -5,6 +5,7 @@ end
 local dandelion = require "dandelion"
 local timeInt = 1
 local fxTim = true
+local onMenu = true
 local baseMass = 2
 local colVal = 1
 local sprWid = 16
@@ -21,6 +22,10 @@ local pY = 0
 local starNum = 50
 local ellRot = 0
 local arrow = {}
+local options = {
+  'PLAY'
+}
+local current_option = 1
 
 function _init()
   -- Live reload preserves globals across saved edits but resets locals.
@@ -731,82 +736,115 @@ function AlphaShift(dt)
   return al
 end
 
-function _update(dt)
-  gameTime += dt
-  Input(dt, State.player)
-  EnemIntro(State.enemies, 0.2, dt)
-  BulletMov(State.bullets, dt)
-  GravEf(State.weapon[1], State.player, dt)
-  -- 2 test functions
-  --CollisionTesting(dt, State.weapon)
-  --MovementTest(State.weapon[1], State.player, 100, dt)
-  ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
-  CollChk(State.weapon, State.bullets)
-  CollChk(State.weapon, State.enemies)
-  if State.player then
-    pX = State.player.x
-    pY = State.player.y
-    -- as long as player is alive, stored time will be set to usagi.elapsed; TimeTrick will only trigger if State.time > usagi.elapsed + 1, which should never happen if player lives. It may be hacky but hell, it works
-    State.time = usagi.elapsed
-    PlayerCol(State.weapon)
-    -- whatever is fucked-up has to be tied to this, it's literally the collision math for the player
-    PlayerCol(State.bullets)
-    State.player.rotVal = RotVal(dt, timeInt)
-    State.player.flipVal = FlipNum(0.5)
-    Removals(State.player)
+function MenuStuff()
+  if input.pressed(input.UP) then
+    current_option -= 1
+    if current_option < 1 then
+      current_option = #options
+    end
   end
-  Shooter(State.enemies)
+  if input.pressed(input.DOWN) then
+    current_option += 1
+    if current_option > #options then
+      current_option = 1
+    end
+  end
+  if input.pressed(input.BTN1) then
+    if current_option == 1 then
+      onMenu = false
+    end
+  end
+end
+
+function _update(dt)
   while #State.stars < starNum do
     MakeStars()
   end
   for i=#State.stars, 1, -1 do
-    if State.stars[i].tingX <= 0 then
-      table.remove(State.stars, i)
-    else
-      State.stars[i].tingX -= State.stars[i].speed
+      if State.stars[i].tingX <= 0 then
+        table.remove(State.stars, i)
+      else
+        State.stars[i].tingX -= State.stars[i].speed
+      end
     end
+  if onMenu == false then
+    gameTime += dt
+    Input(dt, State.player)
+    EnemIntro(State.enemies, 0.2, dt)
+    BulletMov(State.bullets, dt)
+    GravEf(State.weapon[1], State.player, dt)
+    -- 2 test functions
+    --CollisionTesting(dt, State.weapon)
+    --MovementTest(State.weapon[1], State.player, 100, dt)
+    ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
+    CollChk(State.weapon, State.bullets)
+    CollChk(State.weapon, State.enemies)
+    if State.player then
+      pX = State.player.x
+      pY = State.player.y
+      -- as long as player is alive, stored time will be set to usagi.elapsed; TimeTrick will only trigger if State.time > usagi.elapsed + 1, which should never happen if player lives. It may be hacky but hell, it works
+      State.time = usagi.elapsed
+      PlayerCol(State.weapon)
+      -- whatever is fucked-up has to be tied to this, it's literally the collision math for the player
+      PlayerCol(State.bullets)
+      State.player.rotVal = RotVal(dt, timeInt)
+      State.player.flipVal = FlipNum(0.5)
+      Removals(State.player)
+    end
+    Shooter(State.enemies)
+    State.weapon[1].color = ColourShift(colVal)
+    Removals(State.enemies)
+    TimeTrick(State.time)
+  else
+    MenuStuff()
   end
-  State.weapon[1].color = ColourShift(colVal)
-  Removals(State.enemies)
-  TimeTrick(State.time)
 end
 
 function _draw(dt)
   gfx.clear(gfx.COLOR_BLACK)
-  --gfx.clear(gfx.COLOR_BLUE)
-  dandelion.Draw()
-  gfx.text(math.floor(usagi.elapsed) .. 's', CentW, GameH - 40, gfx.COLOR_WHITE)
-  gfx.text(math.floor(gameTime) ..'s', CentW, GameH - 20, gfx.COLOR_WHITE)
-  for i=1, #State.lines do
-    gfx.line(State.lines[i].x1, State.lines[i].y1, State.lines[i].x2, State.lines[i].y2, State.lines[i].col)
-  end
   for i=1, #State.stars do
     gfx.px(State.stars[i].tingX, State.stars[i].tingY, gfx.COLOR_WHITE)
   end
-  if State.player then
-    -- I know I can make this work
-    --gfx.player.type(player.tingX, player.tingY, radius, gfx.COLOR_GREEN)
-    gfx.circ_fill(State.player.x, State.player.y, State.player.r, gfx.COLOR_WHITE)
-    gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, math.rad(State.player.rotVal), gfx.COLOR_WHITE, 1.0)
-    gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, State.player.rotVal, gfx.COLOR_WHITE, AlphaShift(dt))
-  end
-  for i=1, #State.bullets do
-    gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r, State.bullets[i].colOut)
-    gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r / 2, State.bullets[i].colIn)
-  end
-  for i=1, #State.enemies do
-    if State.player then
-      State.enemies[i].rotVal = math.atan(State.enemies[i].y - State.player.y, State.enemies[i].x - State.enemies[i].w / 2 - State.player.x)
+  if onMenu == false then
+    --gfx.clear(gfx.COLOR_BLUE)
+    dandelion.Draw()
+    gfx.text(math.floor(usagi.elapsed) .. 's', CentW, GameH - 40, gfx.COLOR_WHITE)
+    gfx.text(math.floor(gameTime) ..'s', CentW, GameH - 20, gfx.COLOR_WHITE)
+    for i=1, #State.lines do
+      gfx.line(State.lines[i].x1, State.lines[i].y1, State.lines[i].x2, State.lines[i].y2, State.lines[i].col)
     end
-    gfx.sspr_ex(16, 0, 16, 16, State.enemies[i].x - 32, State.enemies[i].y - 16, 16 * 2, 16 * 2, false, false, State.enemies[i].rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
-  end
-  for i=1, #State.weapon do
-    gfx.circ_fill(State.weapon[i].x, State.weapon[i].y, State.weapon[i].r, State.weapon[1].color)
-  end
-  for i=1, #arrow do
-    gfx.tri_fill(arrow[1].x1, arrow[1].y1, arrow[1].x2, arrow[1].y2, arrow[1].x3, arrow[1].y3, gfx.COLOR_WHITE)
-    gfx.text(arrow[1].dText, arrow[1].tX, arrow[1].tY, gfx.COLOR_RED)
-    -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
-    -- leave drawing for the draw loop and updates for the update loop; update data then draw it
+    if State.player then
+      -- I know I can make this work
+      --gfx.player.type(player.tingX, player.tingY, radius, gfx.COLOR_GREEN)
+      gfx.circ_fill(State.player.x, State.player.y, State.player.r, gfx.COLOR_WHITE)
+      gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, math.rad(State.player.rotVal), gfx.COLOR_WHITE, 1.0)
+      gfx.sspr_ex(0, 0, 16, 16, State.player.x - State.player.flipVal, State.player.y - 16, State.player.flipVal * 2, 16 * 2 , false, false, State.player.rotVal, gfx.COLOR_WHITE, AlphaShift(dt))
+    end
+    for i=1, #State.bullets do
+      gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r, State.bullets[i].colOut)
+      gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r / 2, State.bullets[i].colIn)
+    end
+    for i=1, #State.enemies do
+      if State.player then
+        State.enemies[i].rotVal = math.atan(State.enemies[i].y - State.player.y, State.enemies[i].x - State.enemies[i].w / 2 - State.player.x)
+      end
+      gfx.sspr_ex(16, 0, 16, 16, State.enemies[i].x - 32, State.enemies[i].y - 16, 16 * 2, 16 * 2, false, false, State.enemies[i].rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
+    end
+    for i=1, #State.weapon do
+      gfx.circ_fill(State.weapon[i].x, State.weapon[i].y, State.weapon[i].r, State.weapon[1].color)
+    end
+    for i=1, #arrow do
+      gfx.tri_fill(arrow[1].x1, arrow[1].y1, arrow[1].x2, arrow[1].y2, arrow[1].x3, arrow[1].y3, gfx.COLOR_WHITE)
+      gfx.text(arrow[1].dText, arrow[1].tX, arrow[1].tY, gfx.COLOR_RED)
+      -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
+      -- leave drawing for the draw loop and updates for the update loop; update data then draw it
+    end
+  else
+    local optionText = options[current_option]
+    local tW, tH = usagi.measure_text(optionText)
+    -- display title above the options
+    gfx.text(options[current_option], CentW - tW / 2, CentH - tH / 2, gfx.COLOR_WHITE)
+    local rad = 5
+    gfx.circ_fill(CentW - tW, CentH - tH / 8, rad, gfx.COLOR_ORANGE)
   end
 end
