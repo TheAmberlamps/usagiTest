@@ -12,6 +12,7 @@ local sprWid = 16
 local subVal = true
 local accel = 0.25
 local movSpd = 20
+local spawnVal = 5
 local gameTime = 0
 GameW = usagi.GAME_W
 GameH = usagi.GAME_H
@@ -45,10 +46,7 @@ function _init()
     end
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
-  MakeShip(sprWid * 2, sprWid * 2, {x = GameW - sprWid, y = CentH + sprWid}, 'r', movSpd)
-  --MakeShip(0 + 32, CentH, sprWid * 2, sprWid * 2)
-  --MakeShip(CentW + 16, 16, sprWid * 2, sprWid * 2)
-  --MakeShip(CentW + 16, GameH - 16, sprWid * 2, sprWid * 2)
+  --MakeShip(sprWid * 2, sprWid * 2, 'r', movSpd)
   --BulletMaker(State.player, GameW - 16, CentH, 150)
   music.loop('RainPixLoFi')
   --LayoutCheck()
@@ -304,7 +302,7 @@ end
   --end
 --end
 
-function MakeShip(w, h, d, spn, spd)
+function MakeShip(w, h, spn, spd)
   local newShip = {
     x = CentW + w / 2,
     y = CentH,
@@ -315,7 +313,7 @@ function MakeShip(w, h, d, spn, spd)
     -- this should be dependent on spawn location compared to screen values
     -- that being said let's try hard-coding one solution and then moving towards that goal
     sPos = nil,
-    dPos = d,
+    dPos = nil,
     dVel = nil,
     rotVal = 0,
     type = 'spr',
@@ -712,6 +710,21 @@ function BitBlast(i)
   end
 end
 
+function SpawnTimer(time)
+  local timeVal = time % spawnVal
+  print(timeVal)
+  local spawnOptions = {
+    'r',
+    'l',
+    't',
+    'b'
+  }
+  local spwnLoc = spawnOptions[math.random(1, #spawnOptions)]
+  if timeVal == 0 then
+    MakeShip(sprWid * 2, sprWid * 2, spwnLoc, movSpd)
+  end
+end
+
 -- this is a wonderful bit of code but it's executing in the wrong place; it's being fed as an argument to a drawing function in the drawing loop, it should be executed in the update loop and that result should be used to draw.
 function AlphaShift(dt)
   local al = State.player.alpha
@@ -769,6 +782,7 @@ function _update(dt)
     end
   if onMenu == false then
     gameTime += dt
+    SpawnTimer(gameTime)
     Input(dt, State.player)
     EnemIntro(State.enemies, 0.2, dt)
     BulletMov(State.bullets, dt)
