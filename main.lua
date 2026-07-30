@@ -12,7 +12,7 @@ local sprWid = 16
 local subVal = true
 local accel = 0.25
 local movSpd = 20
-local spawnVal = 5
+local spawnTime = 5
 local gameTime = 0
 GameW = usagi.GAME_W
 GameH = usagi.GAME_H
@@ -291,17 +291,6 @@ function BulletMov(buls, dt)
   end
 end
 
---function M.update(dt, b)
-  --if b.alive then
-    --b.t += dt
-    --b.x += b.vel.x * dt
-    --b.y += b.vel.y * dt
-    --if b.x > usagi.GAME_W or b.x + SPR_SIZE < 0 or b.y > usagi.GAME_H or b.y + SPR_SIZE < 0 then
-      --b.alive = false
-    --end
-  --end
---end
-
 function MakeShip(w, h, spn, spd)
   local newShip = {
     x = CentW + w / 2,
@@ -324,22 +313,26 @@ function MakeShip(w, h, spn, spd)
   }
   if newShip.spn == 'r' then
     newShip.x = GameW + newShip.w
+    newShip.y = math.random(h, GameH - h)
     newShip.dPos = {x = GameW - newShip.w, y = newShip.y}
     newShip.dVel = util.vec_from_angle(math.atan(newShip.y - newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
   end
   if newShip.spn == 'l' then
     newShip.x = -newShip.w
-    newShip.dPos = {x = newShip.w * 2, y = newShip.y}
+    newShip.y = math.random(h, GameH - h)
+    newShip.dPos = {x = newShip.w * 1.5, y = newShip.y}
     newShip.dVel = util.vec_from_angle(math.atan(newShip.y - newShip.dPos.y, newShip.x + newShip.dPos.x), newShip.spd)
   end
   if newShip.spn == 't' then
+    newShip.x = math.random(w, GameW - w)
     newShip.y = -newShip.h
-    newShip.dPos = {x = newShip.x, y = newShip.h * 2}
+    newShip.dPos = {x = newShip.x, y = newShip.h * 1.5}
     newShip.dVel = util.vec_from_angle(math.atan(newShip.y + newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
   end
   if newShip.spn == 'b' then
+    newShip.x = math.random(w, GameW - w)
     newShip.y = GameH + newShip.h
-    newShip.dPos = {x = newShip.x, y = GameH - newShip.h}
+    newShip.dPos = {x = newShip.x, y = GameH - newShip.h * 1.5}
     newShip.dVel = util.vec_from_angle(math.atan(newShip.y - newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
   end
   newShip.sPos = {x = newShip.x, y = newShip.y}
@@ -710,9 +703,8 @@ function BitBlast(i)
   end
 end
 
-function SpawnTimer(time)
-  local timeVal = time % spawnVal
-  print(timeVal)
+function NmeSpawner(time)
+  local timeVal = time
   local spawnOptions = {
     'r',
     'l',
@@ -720,8 +712,10 @@ function SpawnTimer(time)
     'b'
   }
   local spwnLoc = spawnOptions[math.random(1, #spawnOptions)]
-  if timeVal == 0 then
+  local elap = usagi.elapsed
+  if elap >= timeVal and State.player then
     MakeShip(sprWid * 2, sprWid * 2, spwnLoc, movSpd)
+    spawnTime = elap + 5
   end
 end
 
@@ -782,7 +776,7 @@ function _update(dt)
     end
   if onMenu == false then
     gameTime += dt
-    SpawnTimer(gameTime)
+    NmeSpawner(spawnTime)
     Input(dt, State.player)
     EnemIntro(State.enemies, 0.2, dt)
     BulletMov(State.bullets, dt)
