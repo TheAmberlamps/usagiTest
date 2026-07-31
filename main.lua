@@ -9,13 +9,16 @@ local onMenu = true
 local baseMass = 2
 local colVal = 1
 local sprWid = 16
+local sprWidStr = sprWid * 2
 local subVal = true
 local accel = 0.25
 local movSpd = 20
 local spawnTime = 5
 local gameTime = 0
 GameW = usagi.GAME_W
+print("GameW: " .. GameW)
 GameH = usagi.GAME_H
+print("GameH: " .. GameH)
 CentW = usagi.GAME_W / 2
 CentH = usagi.GAME_H / 2
 local pX = 0
@@ -44,8 +47,8 @@ function _init()
     while #State.stars < starNum do
       MakeStars(1)
     end
-  DrawingTing('circ')
-  AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
+  --DrawingTing('circ')
+  --AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
   --MakeShip(sprWid * 2, sprWid * 2, 'r', movSpd)
   --BulletMaker(State.player, GameW - 16, CentH, 150)
   music.loop('RainPixLoFi')
@@ -320,19 +323,19 @@ function MakeShip(w, h, spn, spd)
   if newShip.spn == 'l' then
     newShip.x = -newShip.w
     newShip.y = math.random(h, GameH - h)
-    newShip.dPos = {x = newShip.w * 1.5, y = newShip.y}
+    newShip.dPos = {x = newShip.w * 2, y = newShip.y}
     newShip.dVel = util.vec_from_angle(math.atan(newShip.y - newShip.dPos.y, newShip.x + newShip.dPos.x), newShip.spd)
   end
   if newShip.spn == 't' then
     newShip.x = math.random(w, GameW - w)
     newShip.y = -newShip.h
-    newShip.dPos = {x = newShip.x, y = newShip.h * 1.5}
+    newShip.dPos = {x = newShip.x, y = newShip.h * 2}
     newShip.dVel = util.vec_from_angle(math.atan(newShip.y + newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
   end
   if newShip.spn == 'b' then
     newShip.x = math.random(w, GameW - w)
     newShip.y = GameH + newShip.h
-    newShip.dPos = {x = newShip.x, y = GameH - newShip.h * 1.5}
+    newShip.dPos = {x = newShip.x, y = GameH - newShip.h}
     newShip.dVel = util.vec_from_angle(math.atan(newShip.y - newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
   end
   newShip.sPos = {x = newShip.x, y = newShip.y}
@@ -616,6 +619,7 @@ end
 
 function EnemIntro(e, v, dt)
   local en = e
+  -- unused argument?
   local val = v
   for i=1, #en do
     if not en[i].shooting then
@@ -641,6 +645,21 @@ function EnemIntro(e, v, dt)
         end
       end
       if en[i].x == en[i].dPos.x and en[i].y == en[i].dPos.y then
+        local xPos = en[i].x
+        local xStart = en[i].sPos.x
+        local xDest = en[i].dPos.x
+        local yPos = en[i].y
+        local yStart = en[i].sPos.y
+        local yDest = en[i].dPos.y
+        local spnTp = en[i].spn
+        print(" ")
+        print("spawnLoc: " .. spnTp)
+        print("xPos: " .. xPos)
+        print("xStart: " .. xStart)
+        print("xDest: " .. xDest)
+        print("yPos: " .. yPos)
+        print("yStart: " .. yStart)
+        print("yDest: " .. yDest)
         en[i].shooting = true
       end
     end
@@ -714,9 +733,15 @@ function NmeSpawner(time)
   local spwnLoc = spawnOptions[math.random(1, #spawnOptions)]
   local elap = usagi.elapsed
   if elap >= timeVal and State.player then
-    MakeShip(sprWid * 2, sprWid * 2, spwnLoc, movSpd)
+    -- note to self; do NOT use arithmetic as an argument, either supply the values needed to do the math as arguments or run the calculations and use the RESULT as an argument.
+    MakeShip(sprWidStr, sprWidStr, spwnLoc, movSpd)
     spawnTime = elap + 5
   end
+end
+
+function GameStart()
+  DrawingTing('circ')
+  AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
 end
 
 -- this is a wonderful bit of code but it's executing in the wrong place; it's being fed as an argument to a drawing function in the drawing loop, it should be executed in the update loop and that result should be used to draw.
@@ -759,6 +784,7 @@ function MenuStuff()
   if input.pressed(input.BTN1) then
     if current_option == 1 then
       onMenu = false
+      GameStart()
     end
   end
 end
@@ -776,8 +802,8 @@ function _update(dt)
     end
   if onMenu == false then
     gameTime += dt
-    NmeSpawner(spawnTime)
     Input(dt, State.player)
+    NmeSpawner(spawnTime)
     EnemIntro(State.enemies, 0.2, dt)
     BulletMov(State.bullets, dt)
     GravEf(State.weapon[1], State.player, dt)
