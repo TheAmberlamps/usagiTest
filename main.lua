@@ -768,6 +768,13 @@ function AlphaShift(dt)
   return al
 end
 
+function DrawTitle(c)
+  local title = "NUCLEUS"
+  local col = c
+  local txX, txY = usagi.measure_text(title)
+  gfx.text(title, CentW - txX / 2, txY * 2, col)
+end
+
 function MenuStuff()
   if input.pressed(input.UP) then
     current_option -= 1
@@ -874,9 +881,11 @@ function _draw(dt)
       -- leave drawing for the draw loop and updates for the update loop; update data then draw it
     end
   else
+    DrawTitle(gfx.COLOR_PEACH)
     local optionText = options[current_option]
     local tW, tH = usagi.measure_text(optionText)
     -- display title above the options
+    --local w, h = usagi.measure_text("Game Over")
     gfx.text(options[current_option], CentW - tW / 2, CentH - tH / 2, gfx.COLOR_WHITE)
     local rad = 5
     gfx.circ_fill(CentW - tW, CentH - tH / 8, rad, gfx.COLOR_ORANGE)
