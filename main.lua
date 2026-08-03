@@ -6,6 +6,7 @@ local dandelion = require "dandelion"
 local timeInt = 1
 local fxTim = true
 local onMenu = true
+local gameOn = false
 local baseMass = 2
 local colVal = 1
 local sprWid = 16
@@ -645,21 +646,6 @@ function EnemIntro(e, v, dt)
         end
       end
       if en[i].x == en[i].dPos.x and en[i].y == en[i].dPos.y then
-        local xPos = en[i].x
-        local xStart = en[i].sPos.x
-        local xDest = en[i].dPos.x
-        local yPos = en[i].y
-        local yStart = en[i].sPos.y
-        local yDest = en[i].dPos.y
-        local spnTp = en[i].spn
-        print(" ")
-        print("spawnLoc: " .. spnTp)
-        print("xPos: " .. xPos)
-        print("xStart: " .. xStart)
-        print("xDest: " .. xDest)
-        print("yPos: " .. yPos)
-        print("yStart: " .. yStart)
-        print("yDest: " .. yDest)
         en[i].shooting = true
       end
     end
@@ -690,11 +676,13 @@ function TimeTrick(t)
       --sfx.play("hitBlast")
       dandelion.debris_emitter(pX, pY)
       sfx.play("explosion")
+      gameOn = false
       fxTim = false
     end
   end
 end
 
+-- draws two lines to show where the center of the screen is
 function LayoutCheck()
   local vertL = {
     x1 = CentW,
@@ -716,6 +704,7 @@ function LayoutCheck()
   table.insert(State.lines, horiL)
 end
 
+-- test func for particles
 function BitBlast(i)
   if i then
     dandelion.debris_emitter(CentW, CentH)
@@ -740,8 +729,22 @@ function NmeSpawner(time)
 end
 
 function GameStart()
+  gameOn = true
   DrawingTing('circ')
   AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
+end
+
+-- v should be the onMenu bool
+function GameOver()
+  fxTim = true
+  arrow = {}
+  gameTime = 0
+  current_option = 1
+  State.player = nil
+  State.weapon = {}
+  State.bullets = {}
+  State.enemies = {}
+  State.lines = {}
 end
 
 -- this is a wonderful bit of code but it's executing in the wrong place; it's being fed as an argument to a drawing function in the drawing loop, it should be executed in the update loop and that result should be used to draw.
@@ -773,6 +776,13 @@ function DrawTitle(c)
   local col = c
   local txX, txY = usagi.measure_text(title)
   gfx.text(title, CentW - txX / 2, txY * 2, col)
+end
+
+function DrawGameOver(c)
+  local tex = "GAME OVER"
+  local col = c
+  local txX, txY = usagi.measure_text(tex)
+  gfx.text(tex, CentW - txX / 2, CentH - txY / 2, col)
 end
 
 function MenuStuff()
@@ -807,7 +817,7 @@ function _update(dt)
         State.stars[i].tingX -= State.stars[i].speed
       end
     end
-  if onMenu == false then
+  if onMenu == false and gameOn == true then
     gameTime += dt
     Input(dt, State.player)
     NmeSpawner(spawnTime)
@@ -836,8 +846,15 @@ function _update(dt)
     State.weapon[1].color = ColourShift(colVal)
     Removals(State.enemies)
     TimeTrick(State.time)
-  else
+    return
+  elseif onMenu == true then
     MenuStuff()
+    return
+  else
+    if input.pressed(input.BTN1) then
+      onMenu = true
+      GameOver()
+    end
   end
 end
 
@@ -849,7 +866,7 @@ function _draw(dt)
   if onMenu == false then
     --gfx.clear(gfx.COLOR_BLUE)
     dandelion.Draw()
-    gfx.text(math.floor(usagi.elapsed) .. 's', CentW, GameH - 40, gfx.COLOR_WHITE)
+    --gfx.text(math.floor(usagi.elapsed) .. 's', CentW, GameH - 40, gfx.COLOR_WHITE)
     gfx.text(math.floor(gameTime) ..'s', CentW, GameH - 20, gfx.COLOR_WHITE)
     for i=1, #State.lines do
       gfx.line(State.lines[i].x1, State.lines[i].y1, State.lines[i].x2, State.lines[i].y2, State.lines[i].col)
@@ -879,6 +896,9 @@ function _draw(dt)
       gfx.text(arrow[1].dText, arrow[1].tX, arrow[1].tY, gfx.COLOR_RED)
       -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
       -- leave drawing for the draw loop and updates for the update loop; update data then draw it
+    end
+    if gameOn == false then
+      DrawGameOver(gfx.COLOR_PEACH)
     end
   else
     DrawTitle(gfx.COLOR_PEACH)
