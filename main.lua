@@ -43,7 +43,8 @@ function _init()
     stars = {},
     bullets = {},
     enemies = {},
-    lines = {}
+    lines = {},
+    score = 0
   }
     while #State.stars < starNum do
       MakeStars(1)
@@ -592,6 +593,7 @@ function CollChk(c1, c2)
         if secC[j].type == 'spr' then
           sfx.play('shipEx')
           dandelion.debris_emitter(secC[j].x - secC[j].w / 2 , secC[j].y)
+          State.score += 10
           --effect.screen_shake(1, 1)
         end
         secC[j].alive = false
@@ -745,6 +747,7 @@ function GameOver()
   State.bullets = {}
   State.enemies = {}
   State.lines = {}
+  State.score = 0
 end
 
 -- this is a wonderful bit of code but it's executing in the wrong place; it's being fed as an argument to a drawing function in the drawing loop, it should be executed in the update loop and that result should be used to draw.
@@ -782,7 +785,13 @@ function DrawGameOver(c)
   local tex = "GAME OVER"
   local col = c
   local txX, txY = usagi.measure_text(tex)
-  gfx.text(tex, CentW - txX / 2, CentH - txY / 2, col)
+  local scoreText = State.score .. " POINTS * " .. math.floor(gameTime) .. "s"
+  local scrX, scrY = usagi.measure_text(scoreText)
+  local finalScore = tostring(State.score * math.floor(gameTime))
+  local finX, finY = usagi.measure_text(finalScore)
+  gfx.text(tex, CentW - txX / 2, txY, col)
+  gfx.text(scoreText, CentW - scrX / 2, scrY * 2, col)
+  gfx.text(finalScore, CentW - finX / 2, finY * 3, col)
 end
 
 function MenuStuff()
@@ -851,6 +860,13 @@ function _update(dt)
     MenuStuff()
     return
   else
+    BulletMov(State.bullets, dt)
+    GravEf(State.weapon[1], State.player, dt)
+    ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
+    State.weapon[1].color = ColourShift(colVal)
+    CollChk(State.weapon, State.bullets)
+    CollChk(State.weapon, State.enemies)
+    Removals(State.enemies)
     if input.pressed(input.BTN1) then
       onMenu = true
       GameOver()
@@ -867,7 +883,13 @@ function _draw(dt)
     --gfx.clear(gfx.COLOR_BLUE)
     dandelion.Draw()
     --gfx.text(math.floor(usagi.elapsed) .. 's', CentW, GameH - 40, gfx.COLOR_WHITE)
-    gfx.text(math.floor(gameTime) ..'s', CentW, GameH - 20, gfx.COLOR_WHITE)
+    local timTex = math.floor(gameTime) .. 's'
+    local txX, txY = usagi.measure_text(timTex)
+    gfx.text(timTex, CentW - txX / 2, GameH - 20, gfx.COLOR_WHITE)
+    local scoreText = tostring(State.score)
+    local scrX, scrY = usagi.measure_text(scoreText)
+    gfx.text(scoreText, CentW - scrX / 2, 10, gfx.COLOR_PEACH)
+    -- place score here, but at the top
     for i=1, #State.lines do
       gfx.line(State.lines[i].x1, State.lines[i].y1, State.lines[i].x2, State.lines[i].y2, State.lines[i].col)
     end
