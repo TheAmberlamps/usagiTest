@@ -161,6 +161,7 @@
   {
     "name": "debris_emitter",
     "duration": 0.1,
+    "colors": ["gfx.COLOR_WHITE", "gfx.COLOR_RED", "gfx.COLOR_YELLOW"],
     "color": "gfx.COLOR_WHITE",
     "particles": [
       {

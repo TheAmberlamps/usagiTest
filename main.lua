@@ -251,13 +251,20 @@ function ArrowMaker(d, w)
   table.insert(arrow, nA)
 end
 
-function BulletMaker(e, x, y, s)
+function BulletMaker(e, x, y, v, s)
   local enemy = e
   if enemy == false then
     return
   end
+  local variety = v
   local spd = s
+  local colIn = gfx.COLOR_WHITE
+  local colOut = gfx.COLOR_ORANGE
   local angle = math.atan(y - enemy.y, x - enemy.x)
+  if variety == 'b' then
+    colOut = gfx.COLOR_BLUE
+    spd = spd / 2.5
+  end
   print("angle: " .. angle)
   local bullet = {
     x = x,
@@ -266,12 +273,21 @@ function BulletMaker(e, x, y, s)
     --vel = {x = math.cos(angle) * spd, y = math.sin(angle) * spd},
     -- well this is awfully handy
     vel = util.vec_from_angle(angle, spd),
-    colIn = gfx.COLOR_WHITE,
-    colOut = gfx.COLOR_ORANGE,
+    colIn = colIn,
+    colOut = colOut,
     type = "circ",
     alive = true
   }
   table.insert(State.bullets, bullet)
+  -- very interesting, it seems as though instead of inserting three bullets, this is just remodifying a single one and then inserting it after all instructions.
+  -- I suppose the answer here is to run a for or while loop that runs based on the number of bullets to be fired in a spread and applying that difference to the angle... need to start from one end and go to the other, forget basing conditions on the 'center' angle
+  if variety == 'b' then
+    local angleDiff = math.rad(45 / 2)
+    bullet.vel = util.vec_from_angle(angle + angleDiff, spd)
+    table.insert(State.bullets, bullet)
+    bullet.vel = util.vec_from_angle(angle - angleDiff, spd)
+    table.insert(State.bullets, bullet)
+  end
   sfx.play('laserShoot')
 end
 
@@ -297,12 +313,13 @@ function BulletMov(buls, dt)
   end
 end
 
-function MakeShip(w, h, spn, spd)
+function MakeShip(w, h, c, spn, spd)
   local newShip = {
     x = CentW + w / 2,
     y = CentH,
     w = w,
     h = h,
+    class = c,
     spn = spn,
     spd = spd,
     -- this should be dependent on spawn location compared to screen values
@@ -345,12 +362,20 @@ function MakeShip(w, h, spn, spd)
   table.insert(State.enemies, newShip)
 end
 
+function ShipDraw(s)
+  local ship = s
+  if State.player then
+    ship.rotVal = math.atan(ship.y - State.player.y, ship.x - ship.w / 2 - State.player.x)
+  end
+    gfx.sspr_ex(16, 0, 16, 16, ship.x - 32, ship.y - 16, 16 * 2, 16 * 2, false, false, ship.rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
+end
+
 function Shooter(e)
   local ens = e
   local elap = usagi.elapsed
   for i=1, #ens do
     if elap >= ens[i].shotT + 1 and State.player and ens[i].shooting == true then
-      BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, 150)
+      BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, 'b', 150)
       ens[i].shotT = elap --math.random(3)
     end
   end
@@ -726,7 +751,7 @@ function NmeSpawner(time)
   local elap = usagi.elapsed
   if elap >= timeVal and State.player then
     -- note to self; do NOT use arithmetic as an argument, either supply the values needed to do the math as arguments or run the calculations and use the RESULT as an argument.
-    MakeShip(sprWidStr, sprWidStr, spwnLoc, movSpd)
+    MakeShip(sprWidStr, sprWidStr, 'r', spwnLoc, movSpd)
     spawnTime = elap + 5
   end
 end
@@ -906,10 +931,7 @@ function _draw(dt)
       gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r / 2, State.bullets[i].colIn)
     end
     for i=1, #State.enemies do
-      if State.player then
-        State.enemies[i].rotVal = math.atan(State.enemies[i].y - State.player.y, State.enemies[i].x - State.enemies[i].w / 2 - State.player.x)
-      end
-      gfx.sspr_ex(16, 0, 16, 16, State.enemies[i].x - 32, State.enemies[i].y - 16, 16 * 2, 16 * 2, false, false, State.enemies[i].rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
+      ShipDraw(State.enemies[i])
     end
     for i=1, #State.weapon do
       gfx.circ_fill(State.weapon[i].x, State.weapon[i].y, State.weapon[i].r, State.weapon[1].color)
