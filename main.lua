@@ -258,6 +258,7 @@ function BulletMaker(e, x, y, s)
   end
   local spd = s
   local angle = math.atan(y - enemy.y, x - enemy.x)
+  print("angle: " .. angle)
   local bullet = {
     x = x,
     y = y,
@@ -879,7 +880,7 @@ function _draw(dt)
   for i=1, #State.stars do
     gfx.px(State.stars[i].tingX, State.stars[i].tingY, gfx.COLOR_WHITE)
   end
-  if onMenu == false then
+  if onMenu == false and gameOn == true then
     --gfx.clear(gfx.COLOR_BLUE)
     dandelion.Draw()
     --gfx.text(math.floor(usagi.elapsed) .. 's', CentW, GameH - 40, gfx.COLOR_WHITE)
@@ -919,10 +920,7 @@ function _draw(dt)
       -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
       -- leave drawing for the draw loop and updates for the update loop; update data then draw it
     end
-    if gameOn == false then
-      DrawGameOver(gfx.COLOR_PEACH)
-    end
-  else
+  elseif onMenu == true then
     DrawTitle(gfx.COLOR_PEACH)
     local optionText = options[current_option]
     local tW, tH = usagi.measure_text(optionText)
@@ -931,5 +929,27 @@ function _draw(dt)
     gfx.text(options[current_option], CentW - tW / 2, CentH - tH / 2, gfx.COLOR_WHITE)
     local rad = 5
     gfx.circ_fill(CentW - tW, CentH - tH / 8, rad, gfx.COLOR_ORANGE)
+  else
+    dandelion.Draw()
+    DrawGameOver(gfx.COLOR_PEACH)
+    for i=1, #State.bullets do
+      gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r, State.bullets[i].colOut)
+      gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r / 2, State.bullets[i].colIn)
+    end
+    for i=1, #State.enemies do
+      if State.player then
+        State.enemies[i].rotVal = math.atan(State.enemies[i].y - State.player.y, State.enemies[i].x - State.enemies[i].w / 2 - State.player.x)
+      end
+      gfx.sspr_ex(16, 0, 16, 16, State.enemies[i].x - 32, State.enemies[i].y - 16, 16 * 2, 16 * 2, false, false, State.enemies[i].rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
+    end
+    for i=1, #State.weapon do
+      gfx.circ_fill(State.weapon[i].x, State.weapon[i].y, State.weapon[i].r, State.weapon[1].color)
+    end
+    for i=1, #arrow do
+      gfx.tri_fill(arrow[1].x1, arrow[1].y1, arrow[1].x2, arrow[1].y2, arrow[1].x3, arrow[1].y3, gfx.COLOR_WHITE)
+      gfx.text(arrow[1].dText, arrow[1].tX, arrow[1].tY, gfx.COLOR_RED)
+      -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
+      -- leave drawing for the draw loop and updates for the update loop; update data then draw it
+    end
   end
 end
