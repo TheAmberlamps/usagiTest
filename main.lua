@@ -252,6 +252,7 @@ function ArrowMaker(d, w)
 end
 
 function BulletMaker(e, x, y, v, s)
+  sfx.play('laserShoot')
   local enemy = e
   if enemy == false then
     return
@@ -261,34 +262,53 @@ function BulletMaker(e, x, y, v, s)
   local colIn = gfx.COLOR_WHITE
   local colOut = gfx.COLOR_ORANGE
   local angle = math.atan(y - enemy.y, x - enemy.x)
+  local angleDeg = math.deg(angle)
+  local spread = 45
   if variety == 'b' then
     colOut = gfx.COLOR_BLUE
     spd = spd / 2.5
+    local split = 5
+    local startAngle = angleDeg - spread / 2
+    local spreadIncrement = spread / split
+    for i=1, split do
+      local angleMath = math.rad(startAngle + spreadIncrement * (i - 1))
+      local bullet = {
+        x = x,
+        y = y,
+        r = 5,
+        --vel = {x = math.cos(angle) * spd, y = math.sin(angle) * spd},
+        -- well this is awfully handy
+        vel = util.vec_from_angle(angleMath, spd),
+        colIn = colIn,
+        colOut = colOut,
+        type = "circ",
+        alive = true,
+        split = 5,
+        spread = spread
+      }
+      table.insert(State.bullets, bullet)
+    end
+    return
+  elseif variety == 'r' then
+    print("angle: " .. angle)
+    local bullet = {
+      x = x,
+      y = y,
+      r = 5,
+      --vel = {x = math.cos(angle) * spd, y = math.sin(angle) * spd},
+      -- well this is awfully handy
+      vel = util.vec_from_angle(angle, spd),
+      colIn = colIn,
+      colOut = colOut,
+      type = "circ",
+      alive = true,
+      split = 5,
+      spread = spread
+    }
+    table.insert(State.bullets, bullet)
   end
-  print("angle: " .. angle)
-  local bullet = {
-    x = x,
-    y = y,
-    r = 5,
-    --vel = {x = math.cos(angle) * spd, y = math.sin(angle) * spd},
-    -- well this is awfully handy
-    vel = util.vec_from_angle(angle, spd),
-    colIn = colIn,
-    colOut = colOut,
-    type = "circ",
-    alive = true
-  }
-  table.insert(State.bullets, bullet)
   -- very interesting, it seems as though instead of inserting three bullets, this is just remodifying a single one and then inserting it after all instructions.
   -- I suppose the answer here is to run a for or while loop that runs based on the number of bullets to be fired in a spread and applying that difference to the angle... need to start from one end and go to the other, forget basing conditions on the 'center' angle
-  if variety == 'b' then
-    local angleDiff = math.rad(45 / 2)
-    bullet.vel = util.vec_from_angle(angle + angleDiff, spd)
-    table.insert(State.bullets, bullet)
-    bullet.vel = util.vec_from_angle(angle - angleDiff, spd)
-    table.insert(State.bullets, bullet)
-  end
-  sfx.play('laserShoot')
 end
 
 function BulletMov(buls, dt)
