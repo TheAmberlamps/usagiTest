@@ -263,6 +263,7 @@ function BulletMaker(e, x, y, v, s)
   local colOut = gfx.COLOR_ORANGE
   local angle = math.atan(y - enemy.y, x - enemy.x)
   local angleDeg = math.deg(angle)
+  print("angleDeg: " .. angleDeg)
   local spread = 45
   if variety == 'b' then
     colOut = gfx.COLOR_BLUE
@@ -395,7 +396,7 @@ function Shooter(e)
   local elap = usagi.elapsed
   for i=1, #ens do
     if elap >= ens[i].shotT + 1 and State.player and ens[i].shooting == true then
-      BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, 'b', 150)
+      BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, 'r', 150)
       ens[i].shotT = elap --math.random(3)
     end
   end
