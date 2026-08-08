@@ -270,7 +270,7 @@ function BulletMaker(e, x, y, v, s)
     spd = spd / 2.5
     local split = 5
     local startAngle = angleDeg - spread / 2
-    local spreadIncrement = spread / split
+    local spreadIncrement = spread / (split - 1)
     for i=1, split do
       local angleMath = math.rad(startAngle + spreadIncrement * (i - 1))
       local bullet = {
@@ -396,7 +396,7 @@ function Shooter(e)
   local elap = usagi.elapsed
   for i=1, #ens do
     if elap >= ens[i].shotT + 1 and State.player and ens[i].shooting == true then
-      BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, 'r', 150)
+      BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, 'b', 150)
       ens[i].shotT = elap --math.random(3)
     end
   end
