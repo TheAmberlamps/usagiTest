@@ -292,7 +292,7 @@ function BulletMaker(e, x, y, v, s)
       table.insert(State.bullets, bullet)
     end
     return
-  elseif variety == 'r' then
+  elseif variety == 'r' or 'y' then
     print("angle: " .. angle)
     local bullet = {
       x = x,
@@ -400,6 +400,9 @@ function ShipDraw(s)
     sx = 32
     sy = 16
   end
+  if ship.class == "y" then
+    sx = 32
+  end
   gfx.sspr_ex(sx, sy, 16, 16, ship.x - 32, ship.y - 16, 16 * 2, 16 * 2, false, false, ship.rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
 end
 
@@ -407,8 +410,15 @@ function Shooter(e)
   local ens = e
   local bullType
   local elap = usagi.elapsed
+  local timeDiff = 1
   for i=1, #ens do
-    if elap >= ens[i].shotT + 1 and State.player and ens[i].shooting == true then
+    if ens[i].class == 'b' then
+      timeDiff = 2
+    end
+    if ens[i].class == 'y' then
+      timeDiff = 0.5
+    end
+    if elap >= ens[i].shotT + timeDiff and State.player and ens[i].shooting == true then
       bullType = ens[i].class
       BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, bullType, 150)
       ens[i].shotT = elap --math.random(3)
@@ -779,17 +789,27 @@ end
 
 function NmeSpawner(time)
   local timeVal = time
-  local spawnOptions = {
+  local spawnLocs = {
     'r',
     'l',
     't',
     'b'
   }
-  local spwnLoc = spawnOptions[math.random(1, #spawnOptions)]
+  local spwnLoc = spawnLocs[math.random(1, #spawnLocs)]
+  local spawnVars = {
+    "r", "b", "y"
+  }
+  local spawnType = spawnVars[1]
+  if gameTime >= 5 then
+    spawnType = spawnVars[math.random(1, 2)]
+  end
+  if gameTime >= 10 then
+    spawnType = spawnVars[math.random(1, 3)]
+  end
   local elap = usagi.elapsed
   if elap >= timeVal and State.player then
     -- note to self; do NOT use arithmetic as an argument, either supply the values needed to do the math as arguments or run the calculations and use the RESULT as an argument.
-    MakeShip(sprWidStr, sprWidStr, 'b', spwnLoc, movSpd)
+    MakeShip(sprWidStr, sprWidStr, spawnType, spwnLoc, movSpd)
     spawnTime = elap + 5
   end
 end
