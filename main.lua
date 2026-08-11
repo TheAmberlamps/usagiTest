@@ -1,5 +1,5 @@
 function _config()
-  return { name = "Game", game_id = "com.usagiengine.YOURGAMENAME" }
+  return { name = "NUCLEUS", game_id = "com.usagiengine.NUCLEUS" }
 end
 
 local dandelion = require "dandelion"
@@ -33,6 +33,7 @@ local options = {
 local current_option = 1
 
 function _init()
+  local scoreTab = usagi.load() or {hiScore = 0}
   -- Live reload preserves globals across saved edits but resets locals.
   -- Stash mutable game state in a capitalized global like `State` so it
   -- survives reloads; F5 calls _init again to reset.
@@ -44,7 +45,8 @@ function _init()
     bullets = {},
     enemies = {},
     lines = {},
-    score = 0
+    score = 0,
+    hiScore = scoreTab[1]
   }
     while #State.stars < starNum do
       MakeStars(1)
@@ -326,6 +328,7 @@ function BulletMov(buls, dt)
       end
     elseif bArr[i].alive == false then
       table.remove(buls, i)
+      State.score += 2
       sfx.play("bullHit")
       if State.player then
         --BulletMaker(State.player, GameW - 16, CentH, 150)
@@ -388,15 +391,26 @@ function ShipDraw(s)
   if State.player then
     ship.rotVal = math.atan(ship.y - State.player.y, ship.x - ship.w / 2 - State.player.x)
   end
-    gfx.sspr_ex(16, 0, 16, 16, ship.x - 32, ship.y - 16, 16 * 2, 16 * 2, false, false, ship.rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
+  local sx = 0
+  local sy = 0
+  if ship.class == "r" then
+    sx = 16
+  end
+  if ship.class == "b" then
+    sx = 32
+    sy = 16
+  end
+  gfx.sspr_ex(sx, sy, 16, 16, ship.x - 32, ship.y - 16, 16 * 2, 16 * 2, false, false, ship.rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
 end
 
 function Shooter(e)
   local ens = e
+  local bullType
   local elap = usagi.elapsed
   for i=1, #ens do
     if elap >= ens[i].shotT + 1 and State.player and ens[i].shooting == true then
-      BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, 'b', 150)
+      bullType = ens[i].class
+      BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, bullType, 150)
       ens[i].shotT = elap --math.random(3)
     end
   end
@@ -637,6 +651,9 @@ function CollChk(c1, c2)
         result = util.circ_rect_overlap(mainC[i], newTab)
       end
       if result then
+        if secC[j].type == 'circ' then
+          
+        end
         if secC[j].type == 'spr' then
           sfx.play('shipEx')
           dandelion.debris_emitter(secC[j].x - secC[j].w / 2 , secC[j].y)
@@ -772,7 +789,7 @@ function NmeSpawner(time)
   local elap = usagi.elapsed
   if elap >= timeVal and State.player then
     -- note to self; do NOT use arithmetic as an argument, either supply the values needed to do the math as arguments or run the calculations and use the RESULT as an argument.
-    MakeShip(sprWidStr, sprWidStr, 'r', spwnLoc, movSpd)
+    MakeShip(sprWidStr, sprWidStr, 'b', spwnLoc, movSpd)
     spawnTime = elap + 5
   end
 end
@@ -787,6 +804,7 @@ end
 function GameOver()
   fxTim = true
   arrow = {}
+  State.score = State.score * math.floor(gameTime)
   gameTime = 0
   current_option = 1
   State.player = nil
@@ -794,6 +812,10 @@ function GameOver()
   State.bullets = {}
   State.enemies = {}
   State.lines = {}
+  if State.score > State.hiScore then
+    State.hiScore = State.score
+  end
+  usagi.save({State.hiScore})
   State.score = 0
 end
 
@@ -825,13 +847,14 @@ function DrawTitle(c)
   local title = "NUCLEUS"
   local col = c
   local txX, txY = usagi.measure_text(title)
-  gfx.text(title, CentW - txX / 2, txY * 2, col)
+  gfx.text(title, CentW - txX / 2, txY * 2.5, col)
 end
 
 function DrawGameOver(c)
   local tex = "GAME OVER"
   local col = c
   local txX, txY = usagi.measure_text(tex)
+  --State.score = State.score * math.floor(gameTime)
   local scoreText = State.score .. " POINTS * " .. math.floor(gameTime) .. "s"
   local scrX, scrY = usagi.measure_text(scoreText)
   local finalScore = tostring(State.score * math.floor(gameTime))
@@ -965,6 +988,9 @@ function _draw(dt)
     end
   elseif onMenu == true then
     DrawTitle(gfx.COLOR_PEACH)
+    local scoreText = "BEST:" .. State.hiScore
+    local sW, sH = usagi.measure_text(scoreText)
+    gfx.text(scoreText, CentW - sW / 2, sH / 2, gfx.COLOR_WHITE)
     local optionText = options[current_option]
     local tW, tH = usagi.measure_text(optionText)
     -- display title above the options
@@ -983,7 +1009,7 @@ function _draw(dt)
       if State.player then
         State.enemies[i].rotVal = math.atan(State.enemies[i].y - State.player.y, State.enemies[i].x - State.enemies[i].w / 2 - State.player.x)
       end
-      gfx.sspr_ex(16, 0, 16, 16, State.enemies[i].x - 32, State.enemies[i].y - 16, 16 * 2, 16 * 2, false, false, State.enemies[i].rotVal, gfx.COLOR_TRUE_WHITE, 1.0)
+      ShipDraw(State.enemies[i])
     end
     for i=1, #State.weapon do
       gfx.circ_fill(State.weapon[i].x, State.weapon[i].y, State.weapon[i].r, State.weapon[1].color)
