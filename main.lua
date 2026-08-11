@@ -667,7 +667,15 @@ function CollChk(c1, c2)
         if secC[j].type == 'spr' then
           sfx.play('shipEx')
           dandelion.debris_emitter(secC[j].x - secC[j].w / 2 , secC[j].y)
-          State.score += 10
+          if secC[j].class == 'r' then
+            State.score += 10
+          end
+          if secC[j].class == 'b' then
+            State.score += 15
+          end
+          if secC[j].class == 'y' then
+            State.score += 20
+          end
           --effect.screen_shake(1, 1)
         end
         secC[j].alive = false
