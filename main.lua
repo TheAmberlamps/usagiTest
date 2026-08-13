@@ -33,7 +33,7 @@ local options = {
 local current_option = 1
 
 function _init()
-  local scoreTab = usagi.load() or {hiScore = 0}
+  --local scoreTab = usagi.load() or 0
   -- Live reload preserves globals across saved edits but resets locals.
   -- Stash mutable game state in a capitalized global like `State` so it
   -- survives reloads; F5 calls _init again to reset.
@@ -46,7 +46,7 @@ function _init()
     enemies = {},
     lines = {},
     score = 0,
-    hiScore = scoreTab[1]
+    hiScore = 0--scoreTab[1] or scoreTab
   }
     while #State.stars < starNum do
       MakeStars(1)
@@ -327,6 +327,7 @@ function BulletMov(buls, dt)
         --BulletMaker(State.player, GameW - 16, CentH, 150)
       end
     elseif bArr[i].alive == false then
+      dandelion.debris_emitter_b(bArr[i].x - bArr[i].r / 2, bArr[i].y)
       table.remove(buls, i)
       State.score += 2
       sfx.play("bullHit")
@@ -1025,6 +1026,12 @@ function _draw(dt)
     --local w, h = usagi.measure_text("Game Over")
     gfx.text(options[current_option], CentW - tW / 2, CentH - tH / 2, gfx.COLOR_WHITE)
     local rad = 5
+    local instructions1 = "USE YOUR MASS TO SLINGSHOT YOUR WEAPON"
+    local i1w, i1h = usagi.measure_text(instructions1)
+    local instructions2 = "BTN1 INCREASES MASS"
+    local i2w, i2h = usagi.measure_text(instructions2)
+    gfx.text_ex(instructions1, CentW - i1w / 4, GameH - i1h * 2 - i1h / 2, 0.5, 0, gfx.COLOR_WHITE, 1)
+    gfx.text_ex(instructions2, CentW - i2w / 4, GameH - i2h - i2h / 2, 0.5, 0, gfx.COLOR_WHITE, 1)
     gfx.circ_fill(CentW - tW, CentH - tH / 8, rad, gfx.COLOR_ORANGE)
   else
     dandelion.Draw()

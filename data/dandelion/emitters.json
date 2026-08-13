@@ -177,5 +177,25 @@
         }
       }
     ]
+  },
+  {
+    "name": "debris_emitter_b",
+    "duration": 0.1,
+    "colors": ["gfx.COLOR_WHITE", "gfx.COLOR_RED", "gfx.COLOR_YELLOW"],
+    "color": "gfx.COLOR_WHITE",
+    "particles": [
+      {
+        "name": "debris_b",
+        "count": 10,
+        "shape": "circle",
+        "duration": 0.1,
+        "config": {
+          "radius": "10 * self.age",
+          "distribution": "random",
+          "outline": false,
+          "motion": 20
+        }
+      }
+    ]
   }
 ]
