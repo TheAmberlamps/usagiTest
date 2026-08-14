@@ -1,5 +1,5 @@
 function _config()
-  return { name = "NUCLEUS", game_id = "com.usagiengine.NUCLEUS" }
+  return { name = "NUCLEUS", game_id = "com.usagiengine.NUCLEUS", game_width = 640, game_height = 360}
 end
 
 local dandelion = require "dandelion"
