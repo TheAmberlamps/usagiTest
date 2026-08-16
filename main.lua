@@ -517,6 +517,8 @@ function MakeStars(num)
   table.insert(State.stars, star)
 end
 
+-- maybe use a specific value to move by instead of magic numbers? It's all good to move by 15 but that should be 1 variable
+-- ah it's accel * 15, I see... I'll need accel to stay in place if I want to roll back movement, or re-introduce the original movement as an option in the future
 function Input(dt, player)
   local plr = player
   if plr then
@@ -845,7 +847,10 @@ function GameOver()
   if State.score > State.hiScore then
     State.hiScore = State.score
   end
-  usagi.save({State.hiScore})
+  -- could this be it?
+  -- indeed it was, seems like saving and loading data is very volatile...
+  -- well this needs solving, but for the meantime push forward with the planned changes
+  --usagi.save({score = State.hiScore})
   State.score = 0
 end
 
