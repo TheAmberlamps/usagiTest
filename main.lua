@@ -1,7 +1,3 @@
-function _config()
-  return { name = "NUCLEUS", game_id = "com.usagiengine.NUCLEUS", game_width = 480, game_height = 270}
-end
-
 local dandelion = require "dandelion"
 local timeInt = 1
 local fxTim = true
@@ -525,7 +521,9 @@ function Input(dt, player)
   local plr = player
   if plr then
   if input.pressed(input.UP) or input.held(input.UP) then
-    plr.movY = true
+    -- experimental code to rework movement
+    plr.y -= accel * 15 - dt
+    --[[plr.movY = true
     plr.speedY -= accel - dt
     if plr.speedY < -10 then
       plr.speedY = -10
@@ -533,10 +531,11 @@ function Input(dt, player)
     plr.y += plr.speedY
   end
   if input.released(input.UP) then
-    plr.movY = false
+    plr.movY = false]]
   end
   if input.pressed(input.DOWN) or input.held(input.DOWN) then
-    plr.movY = true
+    plr.y += accel * 15 - dt
+    --[[plr.movY = true
     plr.speedY += accel + dt
     if plr.speedY > 10 then
       plr.speedY = 10
@@ -544,10 +543,11 @@ function Input(dt, player)
     plr.y += plr.speedY
   end
   if input.released(input.DOWN) then
-    plr.movY = false
+    plr.movY = false]]
   end
   if input.pressed(input.LEFT) or input.held(input.LEFT) then
-    plr.movX = true
+    plr.x -= accel * 15 - dt
+    --[[plr.movX = true
     plr.speedX -= accel - dt
     if plr.speedX < -10 then
       plr.speedX = -10
@@ -555,10 +555,11 @@ function Input(dt, player)
     plr.x += plr.speedX
   end
   if input.released(input.LEFT) then
-    plr.movX = false
+    plr.movX = false]]
   end
   if input.pressed(input.RIGHT) or input.held(input.RIGHT) then
-    plr.movX = true
+    plr.x += accel * 15 - dt
+    --[[plr.movX = true
     plr.speedX += accel + dt
     if plr.speedX > 10 then
       plr.speedX = 10
@@ -566,7 +567,7 @@ function Input(dt, player)
     plr.x += plr.speedX
   end
   if input.released(input.RIGHT) then
-    plr.movX = false
+    plr.movX = false]]
   end
   if input.held(input.BTN1) then
     if State.weapon[1].mass == baseMass then
