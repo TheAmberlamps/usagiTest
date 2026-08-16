@@ -1,5 +1,5 @@
 function _config()
-  return { name = "NUCLEUS", game_id = "com.usagiengine.NUCLEUS", game_width = 640, game_height = 360}
+  return { name = "NUCLEUS", game_id = "com.usagiengine.NUCLEUS", game_width = 480, game_height = 270}
 end
 
 local dandelion = require "dandelion"
@@ -1030,8 +1030,8 @@ function _draw(dt)
     local i1w, i1h = usagi.measure_text(instructions1)
     local instructions2 = "BTN1 INCREASES MASS"
     local i2w, i2h = usagi.measure_text(instructions2)
-    gfx.text_ex(instructions1, CentW - i1w / 4, GameH - i1h * 2 - i1h / 2, 0.5, 0, gfx.COLOR_WHITE, 1)
-    gfx.text_ex(instructions2, CentW - i2w / 4, GameH - i2h - i2h / 2, 0.5, 0, gfx.COLOR_WHITE, 1)
+    gfx.text_ex(instructions1, CentW - i1w / 2, GameH - i1h * 2 - i1h / 2, 1, 0, gfx.COLOR_WHITE, 1)
+    gfx.text_ex(instructions2, CentW - i2w / 2, GameH - i2h - i2h / 2, 1, 0, gfx.COLOR_WHITE, 1)
     gfx.circ_fill(CentW - tW, CentH - tH / 8, rad, gfx.COLOR_ORANGE)
   else
     dandelion.Draw()
