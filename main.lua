@@ -3,7 +3,7 @@ local timeInt = 1
 local fxTim = true
 local onMenu = true
 local gameOn = false
-local baseMass = 2
+local baseMass = 3
 local colVal = 1
 local sprWid = 16
 local sprWidStr = sprWid * 2
@@ -572,12 +572,13 @@ function Input(dt, player)
     plr.movX = false]]
   end
   if input.held(input.BTN1) then
-    if State.weapon[1].mass == baseMass then
-      State.weapon[1].mass = State.weapon[1].mass * 3
+    State.weapon[1].mass += dt
+    if State.weapon[1].mass > baseMass * 2.5 then
+      State.weapon[1].mass = baseMass * 2.5
     end
-  end
-  if input.released(input.BTN1) then
-    if State.weapon[1].mass > baseMass then
+  else
+    State.weapon[1].mass -= dt
+    if State.weapon[1].mass < baseMass then
       State.weapon[1].mass = baseMass
     end
   end
