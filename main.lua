@@ -879,12 +879,12 @@ function AlphaShift(dt)
   return al
 end
 
-function DrawTitle(c)
-  local title = "NUCLEUS"
+--[[function DrawTitle(c)
+  --local title = "NUCLEUS"
   local col = c
   local txX, txY = usagi.measure_text(title)
   gfx.text(title, CentW - txX / 2, txY * 2.5, col)
-end
+end]]
 
 function DrawGameOver(c)
   local tex = "GAME OVER"
@@ -1023,7 +1023,8 @@ function _draw(dt)
       -- leave drawing for the draw loop and updates for the update loop; update data then draw it
     end
   elseif onMenu == true then
-    DrawTitle(gfx.COLOR_PEACH)
+    --DrawTitle(gfx.COLOR_PEACH)
+    gfx.sspr_ex(0, 32, 120, 25, CentW - 120 / 2, CentH - 70, 120, 25, false, false, 0, gfx.COLOR_TRUE_WHITE, 1.0)
     local scoreText = "BEST:" .. State.hiScore
     local sW, sH = usagi.measure_text(scoreText)
     gfx.text(scoreText, CentW - sW / 2, sH / 2, gfx.COLOR_WHITE)
