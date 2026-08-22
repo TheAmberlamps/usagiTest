@@ -1024,7 +1024,7 @@ function _draw(dt)
     end
   elseif onMenu == true then
     --DrawTitle(gfx.COLOR_PEACH)
-    gfx.sspr_ex(0, 32, 120, 25, CentW - 120 / 2, CentH - 70, 120, 25, false, false, 0, gfx.COLOR_TRUE_WHITE, 1.0)
+    gfx.sspr_ex(0, 32, 186, 24, CentW - 180 / 2, CentH - 70, 180, 25, false, false, 0, gfx.COLOR_TRUE_WHITE, 1.0)
     local scoreText = "BEST:" .. State.hiScore
     local sW, sH = usagi.measure_text(scoreText)
     gfx.text(scoreText, CentW - sW / 2, sH / 2, gfx.COLOR_WHITE)
