@@ -1,5 +1,5 @@
 local dandelion = require "dandelion"
-local easing = require "easing"
+local tween = require "tween"
 local timeInt = 1
 local fxTim = true
 local onMenu = true
@@ -773,16 +773,6 @@ function TimeTrick(t)
   end
 end
 
-function WepIntro(p, w)
-  local plr = p
-  local wep = w
-  local drawnInfo = easing.outCubic(0, plr.x, usagi.GAME_W - usagi.GAME_W / 4, 2)
-  wep.x = drawnInfo
-  print("datINFO")
-  print(drawnInfo)
-  return drawnInfo
-end
-
 -- draws two lines to show where the center of the screen is
 function LayoutCheck()
   local vertL = {
@@ -839,13 +829,27 @@ function NmeSpawner(time)
   end
 end
 
+local tweenTesting
+
+function TweenMaker(d, s, t, e)
+  local dur = d
+  local start = s
+  local targ = t
+  local ease = e
+  return tween.new(dur, start, targ, ease)
+end
+
 function GameStart()
   gameOn = true
   inIntro = true
   DrawingTing('circ')
   --AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
   AntiMatter(CentW, CentH)
-  WepIntro(State.player, State.weapon[1])
+  print("weapon table length: " .. #State.weapon)
+  -- OK, next step is dumping this constructor nonsense and just building this straight-up. No idea what the problem is here but I feel like I'm 1 step away from that payoff
+  tweenTesting = TweenMaker(2, State.weapon[1], {x = CentW + CentW / 2}, "outCubic")
+  -- a table of length 0, of course...
+  print(tweenTesting)
 end
 
 -- v should be the onMenu bool
@@ -949,7 +953,7 @@ function _update(dt)
     end
   if onMenu == false and gameOn == true then
     if inIntro == true then
-      --WepIntro(State.player, State.weapon[1])
+      tweenTesting:update(dt)
     else
       gameTime += dt
       Input(dt, State.player)
@@ -1043,7 +1047,9 @@ function _draw(dt)
       -- leave drawing for the draw loop and updates for the update loop; update data then draw it
     end
   elseif inIntro == true then
+    -- player
     gfx.circ_fill(State.player.x, State.player.y, State.player.r, gfx.COLOR_WHITE)
+    -- weapon
     gfx.circ_fill(State.weapon[1].x, State.weapon[1].y, State.weapon[1].r, State.weapon[1].color)
   elseif onMenu == true then
     --DrawTitle(gfx.COLOR_PEACH)
