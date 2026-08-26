@@ -1,8 +1,10 @@
 local dandelion = require "dandelion"
+local easing = require "easing"
 local timeInt = 1
 local fxTim = true
 local onMenu = true
 local gameOn = false
+local inIntro = false
 local baseMass = 3
 local colVal = 1
 local sprWid = 16
@@ -572,12 +574,12 @@ function Input(dt, player)
     plr.movX = false]]
   end
   if input.held(input.BTN1) then
-    State.weapon[1].mass += dt
+    State.weapon[1].mass += dt + 0.1
     if State.weapon[1].mass > baseMass * 2.5 then
       State.weapon[1].mass = baseMass * 2.5
     end
   else
-    State.weapon[1].mass -= dt
+    State.weapon[1].mass -= dt + 0.1
     if State.weapon[1].mass < baseMass then
       State.weapon[1].mass = baseMass
     end
@@ -771,6 +773,16 @@ function TimeTrick(t)
   end
 end
 
+function WepIntro(p, w)
+  local plr = p
+  local wep = w
+  local drawnInfo = easing.outCubic(0, plr.x, usagi.GAME_W - usagi.GAME_W / 4, 2)
+  wep.x = drawnInfo
+  print("datINFO")
+  print(drawnInfo)
+  return drawnInfo
+end
+
 -- draws two lines to show where the center of the screen is
 function LayoutCheck()
   local vertL = {
@@ -829,8 +841,11 @@ end
 
 function GameStart()
   gameOn = true
+  inIntro = true
   DrawingTing('circ')
-  AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
+  --AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
+  AntiMatter(CentW, CentH)
+  WepIntro(State.player, State.weapon[1])
 end
 
 -- v should be the onMenu bool
@@ -933,34 +948,39 @@ function _update(dt)
       end
     end
   if onMenu == false and gameOn == true then
-    gameTime += dt
-    Input(dt, State.player)
-    NmeSpawner(spawnTime)
-    EnemIntro(State.enemies, 0.2, dt)
-    BulletMov(State.bullets, dt)
-    GravEf(State.weapon[1], State.player, dt)
-    -- 2 test functions
-    --CollisionTesting(dt, State.weapon)
-    --MovementTest(State.weapon[1], State.player, 100, dt)
-    ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
-    CollChk(State.weapon, State.bullets)
-    CollChk(State.weapon, State.enemies)
-    if State.player then
-      pX = State.player.x
-      pY = State.player.y
-      -- as long as player is alive, stored time will be set to usagi.elapsed; TimeTrick will only trigger if State.time > usagi.elapsed + 1, which should never happen if player lives. It may be hacky but hell, it works
-      State.time = usagi.elapsed
-      PlayerCol(State.weapon)
-      -- whatever is fucked-up has to be tied to this, it's literally the collision math for the player
-      PlayerCol(State.bullets)
-      State.player.rotVal = RotVal(dt, timeInt)
-      State.player.flipVal = FlipNum(0.5)
-      Removals(State.player)
+    if inIntro == true then
+      --WepIntro(State.player, State.weapon[1])
+    else
+      gameTime += dt
+      Input(dt, State.player)
+      NmeSpawner(spawnTime)
+      EnemIntro(State.enemies, 0.2, dt)
+      BulletMov(State.bullets, dt)
+      GravEf(State.weapon[1], State.player, dt)
+      --print("weapon.mass: " .. State.weapon[1].mass)
+      -- 2 test functions
+      --CollisionTesting(dt, State.weapon)
+      --MovementTest(State.weapon[1], State.player, 100, dt)
+      ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
+      CollChk(State.weapon, State.bullets)
+      CollChk(State.weapon, State.enemies)
+      if State.player then
+        pX = State.player.x
+        pY = State.player.y
+        -- as long as player is alive, stored time will be set to usagi.elapsed; TimeTrick will only trigger if State.time > usagi.elapsed + 1, which should never happen if player lives. It may be hacky but hell, it works
+        State.time = usagi.elapsed
+        PlayerCol(State.weapon)
+        -- whatever is fucked-up has to be tied to this, it's literally the collision math for the player
+        PlayerCol(State.bullets)
+        State.player.rotVal = RotVal(dt, timeInt)
+        State.player.flipVal = FlipNum(0.5)
+        Removals(State.player)
+      end
+      Shooter(State.enemies)
+      State.weapon[1].color = ColourShift(colVal)
+      Removals(State.enemies)
+      TimeTrick(State.time)
     end
-    Shooter(State.enemies)
-    State.weapon[1].color = ColourShift(colVal)
-    Removals(State.enemies)
-    TimeTrick(State.time)
     return
   elseif onMenu == true then
     MenuStuff()
@@ -985,7 +1005,7 @@ function _draw(dt)
   for i=1, #State.stars do
     gfx.px(State.stars[i].tingX, State.stars[i].tingY, gfx.COLOR_WHITE)
   end
-  if onMenu == false and gameOn == true then
+  if onMenu == false and gameOn == true and inIntro == false then
     --gfx.clear(gfx.COLOR_BLUE)
     dandelion.Draw()
     --gfx.text(math.floor(usagi.elapsed) .. 's', CentW, GameH - 40, gfx.COLOR_WHITE)
@@ -1022,6 +1042,9 @@ function _draw(dt)
       -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
       -- leave drawing for the draw loop and updates for the update loop; update data then draw it
     end
+  elseif inIntro == true then
+    gfx.circ_fill(State.player.x, State.player.y, State.player.r, gfx.COLOR_WHITE)
+    gfx.circ_fill(State.weapon[1].x, State.weapon[1].y, State.weapon[1].r, State.weapon[1].color)
   elseif onMenu == true then
     --DrawTitle(gfx.COLOR_PEACH)
     gfx.sspr_ex(0, 32, 186, 24, CentW - 180 / 2, CentH - 70, 180, 25, false, false, 0, gfx.COLOR_TRUE_WHITE, 1.0)
