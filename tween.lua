@@ -60,7 +60,7 @@ end
 
 -- cubic
 local function inCubic (t, b, c, d) return c * pow(t / d, 3) + b end
-local function outCubic(t, b, c, d) return c * (pow(t / d - 1, 3) + 1) + b end
+local function outCubic(t, b, c, d) return c * (((t / d - 1) ^ 3) + 1) + b end
 local function inOutCubic(t, b, c, d)
   t = t / d * 2
   if t < 1 then return c / 2 * t * t * t + b end

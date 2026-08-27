@@ -829,15 +829,15 @@ function NmeSpawner(time)
   end
 end
 
-local tweenTesting
+local tweenTesting = {}
 
-function TweenMaker(d, s, t, e)
+--[[function TweenMaker(d, s, t, e)
   local dur = d
   local start = s
   local targ = t
   local ease = e
   return tween.new(dur, start, targ, ease)
-end
+end]]--
 
 function GameStart()
   gameOn = true
@@ -847,9 +847,12 @@ function GameStart()
   AntiMatter(CentW, CentH)
   print("weapon table length: " .. #State.weapon)
   -- OK, next step is dumping this constructor nonsense and just building this straight-up. No idea what the problem is here but I feel like I'm 1 step away from that payoff
-  tweenTesting = TweenMaker(2, State.weapon[1], {x = CentW + CentW / 2}, "outCubic")
+  --tweenTesting = TweenMaker(2, State.weapon[1], {x = CentW + CentW / 2}, "outCubic")
   -- a table of length 0, of course...
-  print(tweenTesting)
+  local newTab = {x = State.weapon[1].x}
+  print(newTab)
+  tweenTesting = tween.new(2, State.weapon[1], {x = GameW - GameW / 4}, 'outCubic')
+  print(tweenTesting.subject)
 end
 
 -- v should be the onMenu bool
@@ -953,7 +956,11 @@ function _update(dt)
     end
   if onMenu == false and gameOn == true then
     if inIntro == true then
-      tweenTesting:update(dt)
+      local tween = tweenTesting:update(dt)
+      if tween == true then
+        inIntro = false
+        -- implement a flash here 
+      end
     else
       gameTime += dt
       Input(dt, State.player)
@@ -1050,7 +1057,7 @@ function _draw(dt)
     -- player
     gfx.circ_fill(State.player.x, State.player.y, State.player.r, gfx.COLOR_WHITE)
     -- weapon
-    gfx.circ_fill(State.weapon[1].x, State.weapon[1].y, State.weapon[1].r, State.weapon[1].color)
+    gfx.circ_fill(State.weapon[1].x, State.weapon[1].y, State.weapon[1].r, gfx.COLOR_WHITE) --State.weapon[1].color)
   elseif onMenu == true then
     --DrawTitle(gfx.COLOR_PEACH)
     gfx.sspr_ex(0, 32, 186, 24, CentW - 180 / 2, CentH - 70, 180, 25, false, false, 0, gfx.COLOR_TRUE_WHITE, 1.0)
