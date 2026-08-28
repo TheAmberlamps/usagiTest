@@ -263,7 +263,7 @@ function BulletMaker(e, x, y, v, s)
   local colOut = gfx.COLOR_ORANGE
   local angle = math.atan(y - enemy.y, x - enemy.x)
   local angleDeg = math.deg(angle)
-  print("angleDeg: " .. angleDeg)
+  --print("angleDeg: " .. angleDeg)
   local spread = 45
   if variety == 'b' then
     colOut = gfx.COLOR_BLUE
@@ -291,7 +291,7 @@ function BulletMaker(e, x, y, v, s)
     end
     return
   elseif variety == 'r' or 'y' then
-    print("angle: " .. angle)
+    --print("angle: " .. angle)
     local bullet = {
       x = x,
       y = y,
@@ -831,6 +831,7 @@ end
 
 local tweenTesting = {}
 
+-- deprecated constructor 
 --[[function TweenMaker(d, s, t, e)
   local dur = d
   local start = s
@@ -845,14 +846,12 @@ function GameStart()
   DrawingTing('circ')
   --AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
   AntiMatter(CentW, CentH)
-  print("weapon table length: " .. #State.weapon)
+  sfx.play("launchWep")
   -- OK, next step is dumping this constructor nonsense and just building this straight-up. No idea what the problem is here but I feel like I'm 1 step away from that payoff
   --tweenTesting = TweenMaker(2, State.weapon[1], {x = CentW + CentW / 2}, "outCubic")
-  -- a table of length 0, of course...
-  local newTab = {x = State.weapon[1].x}
-  print(newTab)
+  -- the table below won't work because the subject has to be the actual entity being effected; the tween acts directly on the values in subject instead of returning a value 
+  --local newTab = {x = State.weapon[1].x}
   tweenTesting = tween.new(2, State.weapon[1], {x = GameW - GameW / 4}, 'outCubic')
-  print(tweenTesting.subject)
 end
 
 -- v should be the onMenu bool
@@ -959,7 +958,9 @@ function _update(dt)
       local tween = tweenTesting:update(dt)
       if tween == true then
         inIntro = false
-        -- implement a flash here 
+        sfx.play('wepStart')
+        effect.flash(0.3, gfx.COLOR_WHITE)
+        -- sfx here
       end
     else
       gameTime += dt
