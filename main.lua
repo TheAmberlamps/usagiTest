@@ -700,6 +700,7 @@ function PlayerCol(e)
       result = util.circ_overlap(enArr[i], State.player)
       if result then
         State.player.alive = false
+        sfx.stop('chargeToneClipd')
         effect.hitstop(1)
         --dandelion.debris_emitter(State.player.x, State.player.y)
         sfx.play("hit")
@@ -847,6 +848,7 @@ function GameStart()
   --AntiMatter(usagi.GAME_W - usagi.GAME_W / 4, usagi.GAME_H / 2)
   AntiMatter(CentW, CentH)
   sfx.play("launchWep")
+  music.stop()
   -- OK, next step is dumping this constructor nonsense and just building this straight-up. No idea what the problem is here but I feel like I'm 1 step away from that payoff
   --tweenTesting = TweenMaker(2, State.weapon[1], {x = CentW + CentW / 2}, "outCubic")
   -- the table below won't work because the subject has to be the actual entity being effected; the tween acts directly on the values in subject instead of returning a value 
@@ -959,6 +961,7 @@ function _update(dt)
       if tween == true then
         inIntro = false
         sfx.play('wepStart')
+        music.loop('RainPixLoFi')
         effect.flash(0.3, gfx.COLOR_WHITE)
         -- sfx here
       end
