@@ -355,6 +355,7 @@ function MakeShip(w, h, c, spn, spd)
     alive = true,
     intro = true,
     shooting = false,
+    shotNum = 5,
     shotT = usagi.elapsed + 1,
   }
   if newShip.spn == 'r' then
@@ -415,12 +416,21 @@ function Shooter(e)
       timeDiff = 2
     end
     if ens[i].class == 'y' then
-      timeDiff = 0.5
+      timeDiff = 0.05
     end
     if elap >= ens[i].shotT + timeDiff and State.player and ens[i].shooting == true then
       bullType = ens[i].class
-      BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, bullType, 150)
-      ens[i].shotT = elap --math.random(3)
+      if ens[i].class == 'y' and ens[i].shotNum > 0 then
+        ens[i].shotT = elap + timeDiff
+        ens[i].shotNum -= 1
+        BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, bullType, 150)
+      elseif ens[i].shotNum == 0 then
+        ens[i].shotNum = 5
+        ens[i].shotT = elap + 3
+      else
+        ens[i].shotT = elap + 1 --math.random(3)
+        BulletMaker(State.player, ens[i].x - ens[i].w / 2, ens[i].y, bullType, 150)
+      end
     end
   end
 end
@@ -823,10 +833,10 @@ function NmeSpawner(time)
     spawnType = spawnVars[math.random(1, 3)]
   end
   local elap = usagi.elapsed
-  if elap >= timeVal and State.player then
+  if gameTime >= timeVal and State.player then
     -- note to self; do NOT use arithmetic as an argument, either supply the values needed to do the math as arguments or run the calculations and use the RESULT as an argument.
     MakeShip(sprWidStr, sprWidStr, spawnType, spwnLoc, movSpd)
-    spawnTime = elap + 5
+    spawnTime = gameTime + 5
   end
 end
 
@@ -862,6 +872,7 @@ function GameOver()
   arrow = {}
   State.score = State.score * math.floor(gameTime)
   gameTime = 0
+  spawnTime = 5
   current_option = 1
   State.player = nil
   State.weapon = {}
