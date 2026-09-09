@@ -13,6 +13,8 @@ local subVal = true
 local accel = 0.25
 local movSpd = 20
 local spawnTime = 5
+local wavAmt = 5
+local wavNum = 1
 local gameTime = 0
 GameW = usagi.GAME_W
 print("GameW: " .. GameW)
@@ -683,6 +685,7 @@ function CollChk(c1, c2)
         end
         if secC[j].type == 'spr' then
           sfx.play('shipEx')
+          dandelion.debris_emitter_sq(secC[j].x - secC[j].w / 2, secC[j].y)
           dandelion.debris_emitter(secC[j].x - secC[j].w / 2 , secC[j].y)
           if secC[j].class == 'r' then
             State.score += 10
@@ -838,6 +841,10 @@ function NmeSpawner(time)
     MakeShip(sprWidStr, sprWidStr, spawnType, spwnLoc, movSpd)
     spawnTime = gameTime + 5
   end
+end
+
+function WaveHandler()
+
 end
 
 local tweenTesting = {}
@@ -1073,6 +1080,10 @@ function _draw(dt)
     gfx.circ_fill(State.player.x, State.player.y, State.player.r, gfx.COLOR_WHITE)
     -- weapon
     gfx.circ_fill(State.weapon[1].x, State.weapon[1].y, State.weapon[1].r, gfx.COLOR_WHITE) --State.weapon[1].color)
+    -- wave number
+    local waveText = "WAVE " .. wavNum
+    local w, h = usagi.measure_text(waveText)
+    gfx.text(waveText, CentW - w / 2, CentH - h * 2, gfx.COLOR_WHITE)
   elseif onMenu == true then
     --DrawTitle(gfx.COLOR_PEACH)
     gfx.sspr_ex(0, 32, 186, 24, CentW - 180 / 2, CentH - 70, 180, 25, false, false, 0, gfx.COLOR_TRUE_WHITE, 1.0)
