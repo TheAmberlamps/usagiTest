@@ -5,6 +5,7 @@ local fxTim = true
 local onMenu = true
 local gameOn = false
 local inIntro = false
+local midWave = false
 local baseMass = 3
 local colVal = 1
 local sprWid = 16
@@ -13,7 +14,8 @@ local subVal = true
 local accel = 0.25
 local movSpd = 20
 local spawnTime = 5
-local wavAmt = 5
+local baseSpawns = 1
+local wavAmt = baseSpawns
 local wavNum = 1
 local gameTime = 0
 GameW = usagi.GAME_W
@@ -836,15 +838,26 @@ function NmeSpawner(time)
     spawnType = spawnVars[math.random(1, 3)]
   end
   local elap = usagi.elapsed
-  if gameTime >= timeVal and State.player then
+  if gameTime >= timeVal and State.player and wavAmt > 0 then
     -- note to self; do NOT use arithmetic as an argument, either supply the values needed to do the math as arguments or run the calculations and use the RESULT as an argument.
     MakeShip(sprWidStr, sprWidStr, spawnType, spwnLoc, movSpd)
+    wavAmt -= 1
     spawnTime = gameTime + 5
+  elseif wavAmt == 0 and #State.enemies < 1 then
+    midWave = true
+    State.player = nil
+    State.weapon = {}
+    State.bullets = {}
   end
 end
 
 function WaveHandler()
-
+  if input.pressed(input.BTN1) then
+    wavNum += 1
+    wavAmt = baseSpawns * wavNum
+    midWave = false
+    GameStart()
+  end
 end
 
 local tweenTesting = {}
@@ -881,6 +894,8 @@ function GameOver()
   gameTime = 0
   spawnTime = 5
   current_option = 1
+  wavNum = 1
+  wavAmt = baseSpawns
   State.player = nil
   State.weapon = {}
   State.bullets = {}
@@ -981,12 +996,13 @@ function _update(dt)
         sfx.play('wepStart')
         music.loop('RainPixLoFi')
         effect.flash(0.3, gfx.COLOR_WHITE)
-        -- sfx here
       end
+    elseif midWave == true then
+      WaveHandler()
+      return
     else
       gameTime += dt
       Input(dt, State.player)
-      NmeSpawner(spawnTime)
       EnemIntro(State.enemies, 0.2, dt)
       BulletMov(State.bullets, dt)
       GravEf(State.weapon[1], State.player, dt)
@@ -1013,6 +1029,7 @@ function _update(dt)
       State.weapon[1].color = ColourShift(colVal)
       Removals(State.enemies)
       TimeTrick(State.time)
+      NmeSpawner(spawnTime)
     end
     return
   elseif onMenu == true then
@@ -1038,7 +1055,7 @@ function _draw(dt)
   for i=1, #State.stars do
     gfx.px(State.stars[i].tingX, State.stars[i].tingY, gfx.COLOR_WHITE)
   end
-  if onMenu == false and gameOn == true and inIntro == false then
+  if onMenu == false and gameOn == true and inIntro == false and midWave == false then
     --gfx.clear(gfx.COLOR_BLUE)
     dandelion.Draw()
     --gfx.text(math.floor(usagi.elapsed) .. 's', CentW, GameH - 40, gfx.COLOR_WHITE)
@@ -1103,6 +1120,13 @@ function _draw(dt)
     gfx.text_ex(instructions1, CentW - i1w / 2, GameH - i1h * 2 - i1h / 2, 1, 0, gfx.COLOR_WHITE, 1)
     gfx.text_ex(instructions2, CentW - i2w / 2, GameH - i2h - i2h / 2, 1, 0, gfx.COLOR_WHITE, 1)
     gfx.circ_fill(CentW - tW, CentH - tH / 8, rad, gfx.COLOR_ORANGE)
+  elseif midWave == true then
+    local text = "WAVE " .. wavNum .. " CLEAR!"
+    local w, h = usagi.measure_text(text)
+    gfx.text(text, CentW - w / 2, CentH - h * 4, gfx.COLOR_WHITE)
+    local tex2 = "PRESS Z FOR NEXT"
+    w, h = usagi.measure_text(tex2)
+    gfx.text(tex2, CentW - w / 2, CentH - h * 2, gfx.COLOR_WHITE)
   else
     dandelion.Draw()
     DrawGameOver(gfx.COLOR_PEACH)
