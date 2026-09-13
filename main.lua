@@ -14,7 +14,7 @@ local subVal = true
 local accel = 0.25
 local movSpd = 20
 local spawnTime = 5
-local baseSpawns = 1
+local baseSpawns = 2
 local wavAmt = baseSpawns
 local wavNum = 1
 local gameTime = 0
@@ -29,6 +29,7 @@ local pY = 0
 local starNum = 50
 local ellRot = 0
 local arrow = {}
+local tweens = {}
 local options = {
   'PLAY'
 }
@@ -361,6 +362,7 @@ function MakeShip(w, h, c, spn, spd)
     shooting = false,
     shotNum = 5,
     shotT = usagi.elapsed + 1,
+    inTween = nil
   }
   if newShip.spn == 'r' then
     newShip.x = GameW + newShip.w
@@ -387,6 +389,7 @@ function MakeShip(w, h, c, spn, spd)
     newShip.dVel = util.vec_from_angle(math.atan(newShip.y - newShip.dPos.y, newShip.x - newShip.dPos.x), newShip.spd)
   end
   newShip.sPos = {x = newShip.x, y = newShip.y}
+  newShip.inTween = tween.new(2, newShip, {x = newShip.dPos.x, y = newShip.dPos.y}, 'outCubic')
   table.insert(State.enemies, newShip)
 end
 
@@ -725,6 +728,7 @@ function PlayerCol(e)
   end
 end
 
+-- deprecated, replaced with IntroTweens
 function EnemIntro(e, v, dt)
   local en = e
   -- unused argument?
@@ -755,6 +759,17 @@ function EnemIntro(e, v, dt)
       if en[i].x == en[i].dPos.x and en[i].y == en[i].dPos.y then
         en[i].shooting = true
       end
+    end
+  end
+end
+
+function IntroTweens(e, dt)
+  local nmes = e
+  local delta = dt
+  for i=1, #nmes do
+    local ting = nmes[i].inTween:update(delta)
+    if ting == true then
+      nmes[i].shooting = true
     end
   end
 end
@@ -845,6 +860,8 @@ function NmeSpawner(time)
     spawnTime = gameTime + 5
   elseif wavAmt == 0 and #State.enemies < 1 then
     midWave = true
+    gameTime = 0
+    spawnTime = 5
     State.player = nil
     State.weapon = {}
     State.bullets = {}
@@ -895,7 +912,7 @@ function GameOver()
   spawnTime = 5
   current_option = 1
   wavNum = 1
-  wavAmt = baseSpawns
+  wavAmt = baseSpawns 
   State.player = nil
   State.weapon = {}
   State.bullets = {}
@@ -990,8 +1007,8 @@ function _update(dt)
     end
   if onMenu == false and gameOn == true then
     if inIntro == true then
-      local tween = tweenTesting:update(dt)
-      if tween == true then
+      local tweener = tweenTesting:update(dt)
+      if tweener == true then
         inIntro = false
         sfx.play('wepStart')
         music.loop('RainPixLoFi')
@@ -1003,7 +1020,9 @@ function _update(dt)
     else
       gameTime += dt
       Input(dt, State.player)
-      EnemIntro(State.enemies, 0.2, dt)
+      -- deprecated intro for enemies, replaced with actual tweens
+      --EnemIntro(State.enemies, 0.2, dt)
+      IntroTweens(State.enemies, dt)
       BulletMov(State.bullets, dt)
       GravEf(State.weapon[1], State.player, dt)
       --print("weapon.mass: " .. State.weapon[1].mass)
@@ -1061,7 +1080,7 @@ function _draw(dt)
     --gfx.text(math.floor(usagi.elapsed) .. 's', CentW, GameH - 40, gfx.COLOR_WHITE)
     local timTex = math.floor(gameTime) .. 's'
     local txX, txY = usagi.measure_text(timTex)
-    gfx.text(timTex, CentW - txX / 2, GameH - 20, gfx.COLOR_WHITE)
+    gfx.text(timTex, CentW - txX / 2, GameH - 20, gfx.COLOR_PEACH)
     local scoreText = tostring(State.score)
     local scrX, scrY = usagi.measure_text(scoreText)
     gfx.text(scoreText, CentW - scrX / 2, 10, gfx.COLOR_PEACH)
@@ -1100,33 +1119,34 @@ function _draw(dt)
     -- wave number
     local waveText = "WAVE " .. wavNum
     local w, h = usagi.measure_text(waveText)
-    gfx.text(waveText, CentW - w / 2, CentH - h * 2, gfx.COLOR_WHITE)
+    gfx.text(waveText, CentW - w / 2, CentH - h * 2, gfx.COLOR_PEACH)
   elseif onMenu == true then
     --DrawTitle(gfx.COLOR_PEACH)
-    gfx.sspr_ex(0, 32, 186, 24, CentW - 180 / 2, CentH - 70, 180, 25, false, false, 0, gfx.COLOR_TRUE_WHITE, 1.0)
+    gfx.sspr_ex(0, 32, 186, 24, CentW - 270 / 2, CentH - 70, 270, 33.75, false, false, 0, gfx.COLOR_PEACH, 1.0)
     local scoreText = "BEST:" .. State.hiScore
     local sW, sH = usagi.measure_text(scoreText)
-    gfx.text(scoreText, CentW - sW / 2, sH / 2, gfx.COLOR_WHITE)
+    gfx.text(scoreText, CentW - sW / 2, sH / 2, gfx.COLOR_PEACH)
     local optionText = options[current_option]
     local tW, tH = usagi.measure_text(optionText)
     -- display title above the options
     --local w, h = usagi.measure_text("Game Over")
-    gfx.text(options[current_option], CentW - tW / 2, CentH - tH / 2, gfx.COLOR_WHITE)
+    gfx.text(options[current_option], CentW - tW / 2, (CentH - tH / 2) + tH, gfx.COLOR_PEACH)
     local rad = 5
+    --gfx.circ_fill(CentW - tW, (CentH - tH / 8) + tH, rad, gfx.COLOR_ORANGE)
+    gfx.tri_fill(CentW - tW / 1.5, (CentH - tH / 2) + tH * 1.5, CentW - tW + 2.5, (CentH - tH / 2) + tH * 1.5 - 7.5, CentW - tW + 2.5, (CentH - tH / 2) + tH * 1.5 + 7.5, gfx.COLOR_ORANGE)
     local instructions1 = "USE YOUR MASS TO SLINGSHOT YOUR WEAPON"
     local i1w, i1h = usagi.measure_text(instructions1)
-    local instructions2 = "BTN1 INCREASES MASS"
+    local instructions2 = "PRESS Z TO INCREASES MASS"
     local i2w, i2h = usagi.measure_text(instructions2)
-    gfx.text_ex(instructions1, CentW - i1w / 2, GameH - i1h * 2 - i1h / 2, 1, 0, gfx.COLOR_WHITE, 1)
-    gfx.text_ex(instructions2, CentW - i2w / 2, GameH - i2h - i2h / 2, 1, 0, gfx.COLOR_WHITE, 1)
-    gfx.circ_fill(CentW - tW, CentH - tH / 8, rad, gfx.COLOR_ORANGE)
+    gfx.text_ex(instructions1, CentW - i1w / 2, GameH - i1h * 2 - i1h / 2, 1, 0, gfx.COLOR_PEACH, 1)
+    gfx.text_ex(instructions2, CentW - i2w / 2, GameH - i2h - i2h / 2, 1, 0, gfx.COLOR_PEACH, 1)
   elseif midWave == true then
     local text = "WAVE " .. wavNum .. " CLEAR!"
     local w, h = usagi.measure_text(text)
-    gfx.text(text, CentW - w / 2, CentH - h * 4, gfx.COLOR_WHITE)
+    gfx.text(text, CentW - w / 2, CentH - h * 4, gfx.COLOR_PEACH)
     local tex2 = "PRESS Z FOR NEXT"
     w, h = usagi.measure_text(tex2)
-    gfx.text(tex2, CentW - w / 2, CentH - h * 2, gfx.COLOR_WHITE)
+    gfx.text(tex2, CentW - w / 2, CentH - h * 2, gfx.COLOR_PEACH)
   else
     dandelion.Draw()
     DrawGameOver(gfx.COLOR_PEACH)
