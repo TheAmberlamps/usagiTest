@@ -29,14 +29,14 @@ local pY = 0
 local starNum = 50
 local ellRot = 0
 local arrow = {}
-local tweens = {}
 local options = {
   'PLAY'
 }
 local current_option = 1
 
 function _init()
-  --local scoreTab = usagi.load() or 0
+  local scoreTab = usagi.load() or {score = 0}
+  print(scoreTab.score)
   -- Live reload preserves globals across saved edits but resets locals.
   -- Stash mutable game state in a capitalized global like `State` so it
   -- survives reloads; F5 calls _init again to reset.
@@ -49,7 +49,7 @@ function _init()
     enemies = {},
     lines = {},
     score = 0,
-    hiScore = 0--scoreTab[1] or scoreTab
+    hiScore = scoreTab.score
   }
     while #State.stars < starNum do
       MakeStars(1)
@@ -833,6 +833,8 @@ function BitBlast(i)
   end
 end
 
+local timVar = 0
+
 function NmeSpawner(time)
   local timeVal = time
   local spawnLocs = {
@@ -859,20 +861,22 @@ function NmeSpawner(time)
     wavAmt -= 1
     spawnTime = gameTime + 5
   elseif wavAmt == 0 and #State.enemies < 1 then
+    timVar = usagi.elapsed
+    State.player = nil
     midWave = true
     gameTime = 0
     spawnTime = 5
-    State.player = nil
-    State.weapon = {}
-    State.bullets = {}
   end
 end
 
 function WaveHandler()
-  if input.pressed(input.BTN1) then
+  if input.pressed(input.BTN1) and usagi.elapsed > timVar + 3 then
     wavNum += 1
     wavAmt = baseSpawns * wavNum
     midWave = false
+    State.player = nil
+    State.weapon = {}
+    State.bullets = {}
     GameStart()
   end
 end
@@ -907,7 +911,7 @@ end
 function GameOver()
   fxTim = true
   arrow = {}
-  State.score = State.score * math.floor(gameTime)
+  State.score = State.score * wavNum
   gameTime = 0
   spawnTime = 5
   current_option = 1
@@ -924,7 +928,7 @@ function GameOver()
   -- could this be it?
   -- indeed it was, seems like saving and loading data is very volatile...
   -- well this needs solving, but for the meantime push forward with the planned changes
-  --usagi.save({score = State.hiScore})
+  usagi.save({score = State.hiScore})
   State.score = 0
 end
 
@@ -964,9 +968,9 @@ function DrawGameOver(c)
   local col = c
   local txX, txY = usagi.measure_text(tex)
   --State.score = State.score * math.floor(gameTime)
-  local scoreText = State.score .. " POINTS * " .. math.floor(gameTime) .. "s"
+  local scoreText = State.score .. " POINTS * WAVE " .. wavNum
   local scrX, scrY = usagi.measure_text(scoreText)
-  local finalScore = tostring(State.score * math.floor(gameTime))
+  local finalScore = tostring(State.score * wavNum)
   local finX, finY = usagi.measure_text(finalScore)
   gfx.text(tex, CentW - txX / 2, txY, col)
   gfx.text(scoreText, CentW - scrX / 2, scrY * 2, col)
@@ -1016,6 +1020,12 @@ function _update(dt)
       end
     elseif midWave == true then
       WaveHandler()
+      Input(dt, State.player)
+      BulletMov(State.bullets, dt)
+      GravEf(State.weapon[1], State.player, dt)
+      ArrowMaker(WeaponTracker(State.weapon[1]), State.weapon[1])
+      State.weapon[1].color = ColourShift(colVal)
+      CollChk(State.weapon, State.bullets)
       return
     else
       gameTime += dt
@@ -1077,10 +1087,10 @@ function _draw(dt)
   if onMenu == false and gameOn == true and inIntro == false and midWave == false then
     --gfx.clear(gfx.COLOR_BLUE)
     dandelion.Draw()
-    --gfx.text(math.floor(usagi.elapsed) .. 's', CentW, GameH - 40, gfx.COLOR_WHITE)
-    local timTex = math.floor(gameTime) .. 's'
-    local txX, txY = usagi.measure_text(timTex)
-    gfx.text(timTex, CentW - txX / 2, GameH - 20, gfx.COLOR_PEACH)
+    -- temporarily(?) disabled
+    --local timTex = math.floor(gameTime) .. 's'
+    --local txX, txY = usagi.measure_text(timTex)
+    --gfx.text(timTex, CentW - txX / 2, GameH - 20, gfx.COLOR_PEACH)
     local scoreText = tostring(State.score)
     local scrX, scrY = usagi.measure_text(scoreText)
     gfx.text(scoreText, CentW - scrX / 2, 10, gfx.COLOR_PEACH)
@@ -1119,11 +1129,11 @@ function _draw(dt)
     -- wave number
     local waveText = "WAVE " .. wavNum
     local w, h = usagi.measure_text(waveText)
-    gfx.text(waveText, CentW - w / 2, CentH - h * 2, gfx.COLOR_PEACH)
+    gfx.text(waveText, CentW - w / 2, CentH - h * 3.5, gfx.COLOR_PEACH)
   elseif onMenu == true then
     --DrawTitle(gfx.COLOR_PEACH)
     gfx.sspr_ex(0, 32, 186, 24, CentW - 270 / 2, CentH - 70, 270, 33.75, false, false, 0, gfx.COLOR_PEACH, 1.0)
-    local scoreText = "BEST:" .. State.hiScore
+    local scoreText = "BEST: " .. State.hiScore
     local sW, sH = usagi.measure_text(scoreText)
     gfx.text(scoreText, CentW - sW / 2, sH / 2, gfx.COLOR_PEACH)
     local optionText = options[current_option]
@@ -1141,12 +1151,27 @@ function _draw(dt)
     gfx.text_ex(instructions1, CentW - i1w / 2, GameH - i1h * 2 - i1h / 2, 1, 0, gfx.COLOR_PEACH, 1)
     gfx.text_ex(instructions2, CentW - i2w / 2, GameH - i2h - i2h / 2, 1, 0, gfx.COLOR_PEACH, 1)
   elseif midWave == true then
+    for i=1, #State.bullets do
+      gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r, State.bullets[i].colOut)
+      gfx.circ_fill(State.bullets[i].x, State.bullets[i].y, State.bullets[i].r / 2, State.bullets[i].colIn)
+    end
+    for i=1, #State.weapon do
+      gfx.circ_fill(State.weapon[i].x, State.weapon[i].y, State.weapon[i].r, State.weapon[1].color)
+    end
+    for i=1, #arrow do
+      gfx.tri_fill(arrow[1].x1, arrow[1].y1, arrow[1].x2, arrow[1].y2, arrow[1].x3, arrow[1].y3, gfx.COLOR_WHITE)
+      gfx.text(arrow[1].dText, arrow[1].tX, arrow[1].tY, gfx.COLOR_RED)
+      -- this is the place to run a dedicated drawing function that should rely on the same arguments to display how far outside of the screen the 'weapon' is
+      -- leave drawing for the draw loop and updates for the update loop; update data then draw it
+    end
     local text = "WAVE " .. wavNum .. " CLEAR!"
     local w, h = usagi.measure_text(text)
     gfx.text(text, CentW - w / 2, CentH - h * 4, gfx.COLOR_PEACH)
     local tex2 = "PRESS Z FOR NEXT"
     w, h = usagi.measure_text(tex2)
-    gfx.text(tex2, CentW - w / 2, CentH - h * 2, gfx.COLOR_PEACH)
+    if usagi.elapsed > timVar + 3 then
+      gfx.text(tex2, CentW - w / 2, CentH - h * 2, gfx.COLOR_PEACH)
+    end
   else
     dandelion.Draw()
     DrawGameOver(gfx.COLOR_PEACH)
